@@ -1,0 +1,1 @@
+Maximum[{pre___, x_, post___}] := x /; AllTrue[{pre, post}, x >= # &]
