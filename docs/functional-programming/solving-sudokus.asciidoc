@@ -1,0 +1,104 @@
+:tip-caption: 💡
+:note-caption: ℹ️
+:important-caption: ⚠️
+:task-caption: 👨‍🔧
+:source-highlighter: rouge
+:toc: left
+:toclevels: 3
+:experimental:
+:nofooter:
+
+= Solving Sudokus
+
+To demonstrate the difference between imperative and declarative programming styles, we'll show how to write a solver in each.
+We assume you know what sudoku puzzles are, otherwise you might want to https://en.wikipedia.org/wiki/Sudoku[read up on them].
+
+== Imperative Style
+
+The imperative style matches closest how a human being would take on actually solving a sudoku puzzle.
+It involves specifying "tricks" that can be used to determine what number belongs in which square.
+For example,
+
+* For each square, keep track of the possible candidates.
+  Initially, all numbers from 1 to 9 are possible, but as the solving progresses, the number of possibilities decreases until only one is left.
+* If you fill in some number N in a square, remove this N as candidate from all squares in the same row, column and 3&times;3 block.
+  Once all squares have only one candidate left, the Sudoku puzzle is solved.
+* If you find a row for which you were able to uniquely determine the value for eight out of nine squares, the last square's value can easily be determined.
+  The same trick applies to columns and blocks.
+* If within a row, two squares have the two same candidates left, remove those candidates from all other squares in the same row.
+  This also applies to columns and blocks.
+
+Imperative code would describe **how** to solve them: it states a step-by-step plan to reach your goal.
+
+== Declarative Style
+
+Let's now solve a Sudoku puzzle using a declarative style.
+As mentioned before, we do not need to tell *how* to solve it, only to define what it means for a puzzle to be solved.
+Our code would describe the following rules:
+
+* There are 9&times;9 square.
+* Each square contains a number between 1 and 9.
+* No two squares in the same row, column or block should contain the same number.
+
+Given only these rules, it's up to the machine to find the solution.
+
+To give an actual concrete example, here's a simplified Prolog program that solves Sudokus:
+
+[source,prolog]
+----
+solve( [ [ X11, X21, X31, X41, X51, X61, X71, X81, X91 ],
+         [ X12, X22, X32, X42, X52, X62, X72, X82, X92 ],
+         [ X13, X23, X33, X43, X53, X63, X73, X83, X93 ],
+         [ X14, X24, X34, X44, X54, X64, X74, X84, X94 ],
+         [ X15, X25, X35, X45, X55, X65, X75, X85, X95 ],
+         [ X16, X26, X36, X46, X56, X66, X76, X86, X96 ],
+         [ X17, X27, X37, X47, X57, X67, X77, X87, X97 ],
+         [ X18, X28, X38, X48, X58, X68, X78, X88, X98 ],
+         [ X19, X29, X39, X49, X59, X69, X79, X89, X99 ] ]) :-
+    between(1, 9, X11),
+    between(1, 9, X21),
+    between(1, 9, X31),
+    ...
+    between(1, 9, X99),
+    X11 =\= X21,
+    X11 =\= X31,
+    X11 =\= X41,
+    ...
+    X89 =\= X99.
+----
+
+While the above code works, Prolog does allow for more elegant solutions than a hard-coded enumeration of constraints.
+We chose to favor readability; a better implementation would be less easily understood due to Prolog's idiosyncratic syntax.
+
+The code above makes Prolog look for values for the 81 variables `Xij` (representing the squares of the Sudoku puzzle) so that all constraints are satisfied.
+To solve a Sudoku puzzle, we can write:
+
+[source,prolog]
+----
+solve([[ 5, 3, _, _, 7, _, _, _, _ ],
+       [ 6, _, _, 1, 9, 5, _, _, _ ],
+       [ _, 9, 8, _, _, _, _, 6, _ ],
+       [ 8, _, _, _, 6, _, _, _, 3 ],
+       [ 4, _, _, 8, _, 3, _, _, 1 ],
+       [ 7, _, _, _, 2, _, _, _, 6 ],
+       [ _, 6, _, _, _, _, 2, 8, _ ],
+       [ _, _, _, 4, 1, 9, _, _, 5 ],
+       [ _, _, _, _, 8, _, _, 7, 9 ]]).
+----
+
+Admittedly, if you were to run this code in current Prolog implementations, you'll probably have to wait a very long time before you get your answer: the algorithm first fills all empty squares with ones and checks if all constraints are satisfied.
+If not, it removes the last 1 and replaces it by a 2 and rechecks the constraints.
+It goes on like this, trying out every possibility, until it finds one that is a valid Sudoku solution.
+
+One could reasonably say that the fact that it takes forever to generate a result makes it useless.
+This shortcoming is not inherent to Prolog itself, but to Prolog compilers/interpreters: as of yet, they are
+simply not smart enough to run it efficiently.
+However, given the fact that the Sudoku problem has been fully specified, it is theoretically possible
+to write a compiler that is able to derive a smart solving algorithm for it.
+It's just a matter of time until we get there.
+
+This idea is not that far fetched: remember that when you first encountered Sudoku puzzles, the only
+information you received is the same as what is encoded in the above code.
+You were not given specific instructions of how to solve the puzzle.
+Still you were able to devise a solving algorithm on your own.
+If a human can do it, so can a machine.
