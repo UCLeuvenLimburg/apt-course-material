@@ -10,6 +10,192 @@
 
 = The Lambda Calculus
 
+== Square Roots
+
+A square root of some number X is defined to be a value Y such that Y^2^ equals X.
+For example, 3 is a square root of 9, and so is -3.
+
+This definition is perfectly unambiguous and makes it easy to verify if some number Y is indeed a square root of another number X: simply square Y and see if the result equals X.
+However, it does not tell us how to _find_ this Y.
+
+In fact, in general, it is even impossible to find this Y!
+For example, &radic;2 is 1.414213&hellip; but the number goes on indefinitely: you'll never be able to determine _all_ the digits of &radic;2.
+The only thing you can do is to approximate the square root: you can keep coming closer and closer to its exact value, but you'll never reach it.
+
+Mathematicians generally do not care about this: they are happy to know the square root exists and they can magically conjure it by simply stating that Y is &radic;X.
+However, for our purposes, this is simply not enough: we need the actual value of &radic;X.
+In other words, we need an *algorithm* to compute square roots.
+
+== Models of Computation
+
+Some people started to get interested in computation itself:
+
+* Is it possible to actually compute a result?
+* How long does an algorithm take?
+* What is the quickest way to compute a certain result?
+* Are there problems that cannot be solved?
+
+In order to be able to answer such questions, different https://en.wikipedia.org/wiki/Model_of_computation[_models of computation_] were developed.
+In essence, these can be seen as small programming languages, one of which is the Lambda calculus.
+
+== The Lambda Calculus
+
+The Lambda calculus is very simple: it was made as simple as it could be.
+The only kind of value it supports are unary functions, i.e., functions that accept one argument.
+
+* There are no numbers, no booleans, no strings.
+* There are no if-statements and no loops.
+* There is no assignment, no state of any kind.
+* The only thing a function can receive as argument is another function.
+* The only thing a function can return is another function.
+
+Yet, despite these limitations, it is just as powerful as any other language.
+It is said to be https://en.wikipedia.org/wiki/Turing_completeness[Turing Complete], meaning that any problem that can be solved, can also be solved using the Lambda calculus.
+
+=== Syntax
+
+A function (also called an _abstraction_) looks like this:
+
+[.text-center]
+&lambda;x. body
+
+* The &lambda; indicates "here a function definition begins".
+* The x is the parameter of the function.
+* The dot separates the parameter from the body.
+* Note that the function has no name.
+
+The same could be written in other languages:
+
+[.center,%header,cols="^,^4",width="50%"]
+|===
+| Language | Syntax
+| JavaScript | `function (x) { body }` or `x =&gt; body`
+| Python | `lambda x: body`
+| Ruby | `-&gt;(x) { body }`
+| C# | `x =&gt; body`
+|===
+
+If we have functions, we should also be able to call them.
+The syntax for this is very straightforward:
+
+[.text-center]
+f x
+
+Here, f is the function and x is the argument.
+Many other languages use parentheses to call a function, but the lambda calculus does not require them.
+
+[.center,%header,cols="^,^4",width="50%"]
+|===
+| Language | Syntax
+| JavaScript | `f(x)`
+| Python | `f(x)`
+| Ruby | `f(x)` or `f x`
+| C# | `f(x)`
+|===
+
+This is it.
+You now know the Lambda calculus.
+
+== Examples
+
+=== Example 1
+
+Let's see the Lambda calculus in action by starting with a simple example.
+
+[.text-center]
+(&lambda;x. x x x) a
+
+Here we have a function with parameter "x" and body "x x x".
+Don't worry about what x x x means: it's a completely legal construct, but its meaning is quite abstract and of no importancen to us.
+
+We apply "a" to this function.
+This "a" should actually be another lambda, but for the sake of clarity, we'll just write "a".
+Applying "a" to the function causes the parameter "x" to be set to "a", so we get
+
+[.text-center]
+(&lambda;x. x x x) a &rarr; a a a
+
+=== Example 2
+
+[.text-center]
+((&lambda;x. &lambda;y. y x) a) b
+
+This is slightly more complex, but it's really just about applying the rules.
+Inside the parentheses, we have a function with parameter "x" and body "&lambda;y. y x".
+We call this function with argument "a", meaning we need to replace "x" by "a" in the function's body.
+
+[.text-center]
+((&lambda;x. &lambda;y. y x) a) b &rarr; (&lambda;y. y x) b
+
+We have another function application.
+We evaluate it in the same way.
+
+[.text-center]
+((&lambda;x. &lambda;y. y x) a) b &rarr; (&lambda;y. y x) b &rarr; b a
+
+We cannot evaluate this any further.
+Normally, "b" should be a function (as there's nothing else in the world of the Lambda calculus) so we should be calling this function with argument a.
+
+== But What Does It Mean?
+
+You might wonder what use such a language can be.
+It's just functions that call other functions receiving functions as arguments and returning functions as result.
+How could this be useful?
+
+Well, if you look at an actual computer, it's not much different: it's all just zeros and ones.
+But these bits are used to represent numbers, colors, sounds, etc.
+The same is true for functions: they can also be used to represent numbers and operations on numbers, etc.
+
+For example, here are a few examples of how integers can be modelled in the Lambda calculus:
+
+[.center,cols="^,5",width=50%]
+|===
+| 0 | &lambda;s. &lambda;z. z
+| 1 | &lambda;s. &lambda;z. s z
+| 2 | &lambda;s. &lambda;z. s (s z)
+| 3 | &lambda;s. &lambda;z. s (s (s z))
+| a + b | &lambda;a. &lambda;b. &lambda;f. &lambda;x. a f (b f x)
+| a &times; b | &lambda;a. &lambda;b. &lambda;f. a (b f)
+|===
+
+== Relationship to the Real World
+
+While the Lambda calculus could be used as a programming language, it would be very hard to compile it to efficient machine code.
+For example, CPUs can efficiently perform number addition.
+In order to leverage this, a compiler would need to recognize the expression &lambda;a. &lambda;b. &lambda;f. &lambda;x. a f (b f x) as representing addition and translate it as such.
+While it is theoretically possible, it's just so much simpler to use a language that supports addition directly.
+
+So why not simply extend the Lambda calculus?
+Let's add numbers and operators such as `+`, `-`, `*` and `/`.
+We could then write
+
+[.text-center]
+(&lambda; x. &lambda; y. &lambda; z. x + y + z) 1 2 3
+&rarr; (&lambda; y. &lambda; z. 1 + y + z) 2 3
+&rarr; (&lambda; z. 1 + 2 + z) 3
+&rarr; 1 + 2 + 3
+&rarr; 6
+
+We could further extend it:
+
+* More data types such as strings, boolean, floating point numbers, &hellip;
+* The ability to name functions
+* Control flow such as conditionals and loops
+
+These extensions have been implemented and gave rise to languages such as https://common-lisp.net/[Common Lisp], https://en.wikipedia.org/wiki/ML_(programming_language)[ML] and https://www.haskell.org/ghc/[Haskell].
+For example, https://racket-lang.org/[Racket]'s syntax is very close to the Lambda calculus's:
+
+[source,racket]
+----
+(define (factorial n)
+  (if (= n 0)
+    1
+    (* n (factorial (- n 1)))))
+
+(factorial 5)     ; Evaluates to 120
+----
+
+Its influence is not limited to some programming languages you've never heard of: JavaScript, C#, C++, Java, &hellip; all have inherited from it.
 
 == External Resources
 
