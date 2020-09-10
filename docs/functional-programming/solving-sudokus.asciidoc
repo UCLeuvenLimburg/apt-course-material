@@ -15,20 +15,68 @@ We assume you know what sudoku puzzles are, otherwise you might want to https://
 
 == Imperative Style
 
-The imperative style matches closest how a human being would take on actually solving a sudoku puzzle.
+The imperative style matches most closely how a human being would take on actually solving a sudoku puzzle.
 It involves specifying "tricks" that can be used to determine what number belongs in which square.
 For example,
 
 * For each square, keep track of the possible candidates.
   Initially, all numbers from 1 to 9 are possible, but as the solving progresses, the number of possibilities decreases until only one is left.
++
+[source,python]
+----
+sudoku = Grid([ [ set(range(1,10)) for x in range(0, 9) ] for y in range(0, 9) ])
+----
 * If you fill in some number N in a square, remove this N as candidate from all squares in the same row, column and 3&times;3 block.
-  Once all squares have only one candidate left, the Sudoku puzzle is solved.
++
+[source,python]
+----
+def set_square_value(grid, position, number):
+  grid[position].clear()
+  grid[position].add(number)
+  for p in in_same_group_as(position):
+    grid[p] -= { number }
+----
+* Once all squares have only one candidate left, the Sudoku puzzle is solved.
++
+[source,python]
+----
+def is_solved(grid):
+  for position in all_positions(grid):
+    if len(grid[position]) != 1:
+      return False
+  return True
+----
 * If you find a row for which you were able to uniquely determine the value for eight out of nine squares, the last square's value can easily be determined.
   The same trick applies to columns and blocks.
++
+[source,python]
+----
+def fill_in_ninth(grid):
+  def helper(square_positions):
+    only_one = []
+    more_than_one = []
+    for position in square_positions:
+      square = grid
+      if len(square) > 1:
+        more_than_one.append(position)
+      else:
+        only_one.append(position
+    if len(more_than_one) == 1:
+      position = more_than_one[0]
+      missing_number = sum(range(1,10)) - sum(list(grid[p])[0] for p in only_one)
+      set_square_value(grid, position, missing_number)
+  for squares in rows(grid) + columns(grid) + blocks(grid):
+    helper(squares)
+----
 * If within a row, two squares have the two same candidates left, remove those candidates from all other squares in the same row.
   This also applies to columns and blocks.
++
+[source,python]
+----
+# Left as an exercise for the reader
+----
 
-Imperative code would describe **how** to solve them: it states a step-by-step plan to reach your goal.
+Imperative code describes **how** to solve a Sudoku puzzle; it is a step-by-step plan to reach your goal.
 
 == Declarative Style
 
@@ -60,17 +108,17 @@ solve( [ [ X11, X21, X31, X41, X51, X61, X71, X81, X91 ],
     between(1, 9, X31),
     ...
     between(1, 9, X99),
-    X11 =\= X21,
-    X11 =\= X31,
-    X11 =\= X41,
+    X11 \= X21,
+    X11 \= X31,
+    X11 \= X41,
     ...
-    X89 =\= X99.
+    X89 \= X99.
 ----
 
 While the above code works, Prolog does allow for more elegant solutions than a hard-coded enumeration of constraints.
-We chose to favor readability; a better implementation would be less easily understood due to Prolog's idiosyncratic syntax.
+We chose to favor readability; a better implementation would be less understandable due to Prolog's idiosyncratic syntax.
 
-The code above makes Prolog look for values for the 81 variables `Xij` (representing the squares of the Sudoku puzzle) so that all constraints are satisfied.
+The code above makes Prolog look for values for the 81 variables `Xij` (representing the 81 squares of the Sudoku puzzle) so that all constraints are satisfied.
 To solve a Sudoku puzzle, we can write:
 
 [source,prolog]
