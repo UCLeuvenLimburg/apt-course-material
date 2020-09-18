@@ -475,3 +475,47 @@ class Interval:
 ----
 
 There is nothing magical about properties: they are built on top of https://www.python.org/dev/peps/pep-0318/[decorators] and https://docs.python.org/3/howto/descriptor.html[descriptor objects].
+
+== Conclusion
+
+Java programmers are generally taught that getters and setters make good design.
+However, seldom do they understand the reasoning behind it, which is why getters and setters are defined without further thought, regardless of the context or programming language.
+Because of this, getters and setters have even become an anti-pattern in the eyes of many due to them being used inappropriately.
+
+* https://www.infoworld.com/article/2073723/why-getter-and-setter-methods-are-evil.html[Why getter and setter methods are evil]
+* https://medium.com/@ajengs/the-anti-pattern-of-getters-and-setters-22011e0123e9[The Anti Pattern of Getters And Setters]
+* https://www.yegor256.com/2014/09/16/getters-and-setters-are-evil.html[Getters/Setters. Evil. Period.]
+* http://wiki.c2.com/?AccessorsAreEvil[Accessors Are Evil]
+* https://www.adam-bien.com/roller/abien/entry/encapsulation_violation_with_getters_and[Getters and setters: an antipattern.]
+
+[WARNING]
+====
+We are not trying to convince you of the evils of getters and setters, but rather of the evils of applying guidelines dogmatically.
+Rules don't exist in a vacuum: they apply only in a certain context.
+It is therefore crucial to know which context the rules were defined in and to only apply them in situations that warrant them.
+====
+
+Getters and setters are Java's way of ensuring the Uniform Access Principle is not violated.
+In other words, they are a *means* to an end, not an end in itself.
+These are often confused and is a typical consequence of not understanding the rationale behind the rules.
+
+The Uniform Access Principle is a concept that transcends programming languages.
+It is generally a good idea to attempt to follow it.
+Different languages provide different solutions, each with their own advantages and disadvantages.
+In general, it is advisable to use the most idiomatic approach for the language you are working with.
+
+As with all rules, it is not absolute.
+For example, getters and setters might stand in the way of performance, in which case it might be useful to fall back to public fields.
+
+[WARNING]
+====
+Be careful with using performance as an excuse to violate rules of thumb.
+Never *assume* something might be slow, or that a certain solution is destined to improve things.
+Only optimize when
+
+* performance is actually bad;
+* you have evidence that a certain piece of code is indeed the culprit (e.g. using profiling);
+* and that you know your changes will indeed boost performance.
+
+Otherwise, do not sacrifice your code's readability and clean design.
+====
