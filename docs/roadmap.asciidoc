@@ -1,0 +1,43 @@
+:tip-caption: 💡
+:note-caption: ℹ️
+:important-caption: ⚠️
+:task-caption: 👨‍🔧
+:toc: left
+:toclevels: 3
+:experimental:
+:nofooter:
+:source-highlighter: rouge
+
+= Roadmap
+
+* Design patterns filling holes in languages
+** Uniform Access Principle
+* Functional programming
+** History (Fortran vs Lisp)
+** Imperative vs Declarative
+** State
+*** Adds time dimension
+*** Problems with multithreading
+** Stateless
+*** Safer (no sharing state accidentally)
+*** Remove time aspect
+*** Simplifies multithreading
+*** Allows for laziness
+*** Allows for memoization
+** Higher Order Functions
+*** Design patterns for algorithms
+*** MapReduce
+*** Reduce: essentially state threading
+*** Map, filter, find, count, max_by, ...
+* Concurrent Programming
+** Concurrent vs Parallel
+** Semaphores, locks, monitors, ...
+*** Not composable
+** Memory models
+** Shared state is hell
+** async in C#, JavaScript
+** Goroutines in Go
+** Actors/CSP
+* Expression problem
+* Reactive programming
+** Fakes an up to date equality (e.g. := in Mathematica)
