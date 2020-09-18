@@ -1,0 +1,4 @@
+Frequencies[{x_, xs___}, {pre___, {x_, n_}, post___}] := Frequencies[{xs}, {pre, {x, n + 1}, post}];
+Frequencies[{x_, xs___}, {acc___}] := Frequencies[{xs}, {acc, {x, 1}}];
+Frequencies[{}, acc_] := acc;
+Frequencies[xs_] := Frequencies[xs, {}]
