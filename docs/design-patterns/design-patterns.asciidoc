@@ -28,3 +28,4 @@ There are plenty of examples of design patterns, such as
 Let us have a closer look at some of these.
 
 include::getters-setters.asciidoc[leveloffset=1]
+include::strategy.asciidoc[leveloffset=1]

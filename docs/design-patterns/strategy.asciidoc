@@ -1,0 +1,451 @@
+= Strategy
+
+The Strategy design pattern is actually of one the most basic patterns in existence.
+In fact, in many language it is not even considered a pattern at all, but simply "obvious".
+But why did it end up in the pantheon of design patterns, then?
+
+== Working Example
+
+=== Person
+
+We assume the existence of the following `Person` class:
+
+[source,java]
+----
+class Person
+{
+    int getAge();
+    int getLength();
+    double getWeight();
+    Gender getGender();
+}
+----
+
+=== Counting by Age
+
+Say we have a list of such objects and we are interested in counting how many are adults, i.e., at least 18 years old.
+We can write the following algorithm:
+
+[source,java]
+----
+int countAdults(List<Person> people)
+{
+    var count = 0;
+
+    for ( var person : people )
+    {
+        if ( person.getAge() >= 18 )
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+----
+
+We might also be interested in counting how many are at least 65 years old:
+
+[source,java]
+----
+int countElderly(List<Person> people)
+{
+    var count = 0;
+
+    for ( var person : people )
+    {
+        if ( person.getAge() >= 65 )
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+----
+
+There is a clear similarity here.
+We can factor out the common code and let the minimum age be a parameter:
+
+[source,java]
+----
+int countWithAgeAtLeast(List<Person> people, int minimumAge)
+{
+    var count = 0;
+
+    for ( var person : people )
+    {
+        if ( person.getAge() >= minimumAge )
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+int countAdults(List<Person> people)
+{
+    return countWithAgeAtLeast(people, 18);
+}
+
+int countElderly(List<Person> people)
+{
+    return countWithAgeAtLeast(people, 65);
+}
+----
+
+This is clearly much better. However, we now also need to count the number of minors, i.e., those less than 18.
+
+[source,java]
+----
+int countMinors(List<Person> people)
+{
+    var count = 0;
+
+    for ( var person : people )
+    {
+        if ( person.getAge() < 18 )
+        {
+            count++;
+        }
+    }
+
+    result count;
+}
+----
+
+While it is very similar to `countWithAgeAtLeast`, there is simply no way we can find a value for its parameter that makes it behave like `countMinors`.
+But perhaps we can add a new parameter?
+
+[source,java]
+----
+int countAgedBetween(List<Person> people, int minimumAge, int maximumAge)
+{
+    var count = 0;
+
+    for ( var person : people )
+    {
+        int age = person.getAge();
+
+        if ( minimumAge <= age && age <= maximumAge )
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+int countMinors(List<Person> people)
+{
+    return countAgedBetween(people, 0, 18);
+}
+----
+
+`countAgedBetween` is more flexible than `countWithAgeAtLeast`.
+Let's get rid of the latter and rewrite `countAdults` and `countElderly` in terms of the former.
+
+[source,java]
+----
+int countAdults(List<Person> people)
+{
+    return countAgedBetween(people, 18, Integer.MAX_VALUE);
+}
+
+int countElderly(List<Person> people)
+{
+    return countAgedBetween(people, 65, Integer.MAX_VALUE);
+}
+----
+
+While we don't really want an upper bound, `countAgedBetween` forces us to specify one.
+Ideally, we would pass infinity, as that is the mathematical way to express the lack of upper bound.
+Unfortunately, Java does not support this.
+The second best solution is to use the highest value possible for integers, which is `Integer.MAX_VALUE`.
+
+[WARNING]
+====
+Never use an arbitrary number like `200` in this kind of situation.
+While this might seem like a perfectly reasonable upper bound, given that there are so few 200 year old wandering about, there is simply no reason to rely on such an arbitrary value.
+====
+
+=== Counting by Gender
+
+What if we want to count people based on a different attribute?
+We could be interested in the number of men:
+
+[source,java]
+----
+int countMen(List<Person> people)
+{
+    var count = 0;
+
+    for ( var person : people )
+    {
+        if ( person.getGender() == Gender.MALE )
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+----
+
+Similarly for women:
+
+[source,java]
+----
+int countWomen(List<Person> people)
+{
+    var count = 0;
+
+    for ( var person : people )
+    {
+        if ( person.getGender() == Gender.FEMALE )
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+----
+
+Again we should generalize these algorithms into one single function:
+
+[source,java]
+----
+int countByGender(List<Person> people, Gender gender)
+{
+    var count = 0;
+
+    for ( var person : people )
+    {
+        if ( person.getGender() == gender )
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+int countMen(List<Person> people)
+{
+    return countByGender(people, Gender.MALE);
+}
+
+
+int countWomen(List<Person> people)
+{
+    return countByGender(people, Gender.FEMALE);
+}
+----
+
+=== Generalized Counting
+
+We notice `countByGender` and `countAgedBetween` have a lot in common.
+We could merge both into one single function:
+
+[source,java]
+----
+int countByGenderAndAge(List<Person> people, Gender gender, int minimumAge, int maximumAge)
+{
+    var count = 0;
+
+    for ( var person : people )
+    {
+        var age = person.getAge();
+
+        if ( minimumAge <= age && personAge <= age && (gender == null || gender == person.getGender()) )
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+----
+
+There are multiple issues with this approach:
+
+* The number of parameters would grow large if we were to allow counting based on name, weight, length, &hellip;
+* Expressing there are no restrictions on a certain attribute requires special values. For example,
+** `minimumAge` should be `0` if we want no lower bound.
+** `maximumAge` should be `Integer.MAX_VALUE` if no upper bound is required.
+** `gender` should be `null` if gender is unimportant.
+
++
+This burdens the user with having to know all these special values and to pass them each time.
+* We could provide overloads which fill in these special values, but the number of these would grow exponentially with the number of person attributes.
+* Right now, we can only express very basic conditions. For example,
+** We can't count people whose age is a prime number.
+** We can't express disjunctions, e.g., count people who are either male *or* minor.
+
+Is there a way that solves all these problems?
+
+== Data vs Code
+
+``countByGenderAndAge``'s parameters are all pieces of *data* that are inserted into the condition of the `if` statement.
+In essence, this condition is a rigid template that determines which kind of conditions can be expressed.
+The more flexibility we want, the more complex this condition needs to become and the more parameters need to be added.
+
+What if, instead of allowing *parts* of this conditions to be specified through parameters, we simply let the user determine the *whole* condition?
+Instead of trying to use *data* to express the condition, we can try to pass *code* instead.
+For example, it'd be nice would be able to write something like
+
+[source,java]
+----
+int countByGenderAndAge(List<Person> people, Condition condition)
+{
+    var count = 0;
+
+    for ( var person : people )
+    {
+        if ( condition )
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+----
+
+Let's think about what this `condition` should be.
+
+* It is an expression that should evaluate to a boolean value, since it is used in an `if`.
+* It should be able to look at a `Person` object, based on which it will return `true` or `false`.
+
+So, basically, we need something that takes a `Person` and returns a `boolean`.
+This sounds suspiciously like a function.
+
+== Java (pre 8)
+
+Java (pre 8) does not support functions.
+Instead, we need to fake a function using objects.
+To achieve this, we need to dissect functions:
+
+* A function has one operation defined on it: one can _call_ it.
+  This means the object representing a function must have a method `call()` mirroring this operation.
+* Calling a function involves passing along arguments and returning a result.
+  The `call()` method must provide the same functionality.
+  This is rather trivial to achieve, because methods are basically functions with as distinction that functions are "free" while methods are stuck within an object.
+
+Strategy is nothing more than a design pattern explaining the same idea: how to fake a function in a language without functions using objects.
+It describes how to define an interface that models a function:
+
+[source,java]
+----
+interface PersonPredicate
+{
+    boolean call(Person person);
+}
+----
+
+We can use this in our `count` function:
+
+[source,java]
+----
+int count(List<Person> people, PersonPredicate predicate)
+{
+    var count = 0;
+
+    for ( var person : people )
+    {
+        if ( predicate.call(person) )
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+----
+
+This `count` function makes no assumptions whatsoever about the counting condition, meaning it is compatible with any condition you can imagine.
+You only need to create a `PersonPredicate` object that represents the condition to be used.
+
+[source,java]
+----
+class IsMinorPredicate implements PersonPredicate
+{
+    public boolean call(Person person)
+    {
+        return person.getAge() < 18;
+    }
+}
+
+class IsAdultPredicate implements PersonPredicate
+{
+    public boolean call(Person person)
+    {
+        return person.getAge() >= 18;
+    }
+}
+
+class IsMalePredicate implements PersonPredicate
+{
+    public boolean call(Person person)
+    {
+        return person.getGender() == Gender.MALE;
+    }
+}
+
+class IsFemalePredicate implements PersonPredicate
+{
+    public boolean call(Person person)
+    {
+        return person.getGender() == Gender.FEMALE;
+    }
+}
+----
+
+We can then call `count` with the appropriate object:
+
+[source,java]
+----
+int adultCount = count(people, new IsAdultPredicate());
+int femaleCount = count(people, new IsFemalePredicate());
+----
+
+== C#
+
+Java (pre 8) requires quite a bit of boilerplate: we need to define an interface and a class for what is in essence just a single expression.
+
+C# supports functions more directly:
+
+[source,csharp]
+----
+int Count(List<Person> people, Func<Person, bool> predicate)  // <1>
+{
+    var count = 0;
+
+    foreach ( var person in people )
+    {
+        if ( predicate(person) )  // <2>
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+----
+<1> `Func<Person, bool>` is the type of a function receiving a `Person` and returning a `bool`.
+<2> Note how the standard function call syntax is preserved.
+
+Instead of having to define a whole new class to wrap a condition, we can make use of lambdas:
+
+[source,csharp]
+----
+var minorCount = Count(people, p => p.Age < 18);
+----
+
+* Is simply passing code as parameter
+* Java style
+* Ruby blocks
+* C# Action/Func
+* Code > Data
