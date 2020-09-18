@@ -1,0 +1,191 @@
+:tip-caption: 💡
+:note-caption: ℹ️
+:important-caption: ⚠️
+:task-caption: 👨‍🔧
+:nofooter:
+:toc: left
+:toclevels: 3
+:experimental:
+:source-highlighter: rouge
+
+= Design Patterns
+
+According to https://en.wikipedia.org/wiki/Software_design_pattern[Wikipedia], a design pattern is a general, reusable solution to a commonly occuring problem.
+There are plenty of examples of design patterns, such as
+
+* https://en.wikipedia.org/wiki/Mutator_method[Getters and setters]
+* https://en.wikipedia.org/wiki/Strategy_pattern[Strategy]
+* https://en.wikipedia.org/wiki/Factory_method_pattern[Factory method]
+* https://en.wikipedia.org/wiki/Iterator_pattern[Iterator]
+* https://en.wikipedia.org/wiki/Object_pool_pattern[Object pool]
+* https://en.wikipedia.org/wiki/Composite_pattern[Composite]
+* https://en.wikipedia.org/wiki/Singleton_pattern[Singleton]
+
+Let us have a closer look at some of these.
+
+== Getters and Setters
+
+=== Java
+
+Take a quick look at the code below.
+
+[source,java]
+.Java Interval class: public fields
+----
+public class Interval
+{
+    public double lowerBound;
+
+    public double upperBound;
+
+    public Interval(double lowerBound, double upperBound)
+    {
+        this.lowerBound = lowerBound;
+        this.upperBound = upperBound;
+    }
+
+    public double getWidth() { return upperBound - lowerBound; }
+}
+----
+
+You were taught never to make fields public, but to define getters and setters instead, as shown below.
+
+[source,java]
+.Java Interval class: correct implementation
+----
+public class Interval
+{
+    private double lowerBound;
+
+    private double upperBound;
+
+    public Interval(double lowerBound, double upperBound)
+    {
+        setLowerBound(lowerBound);
+        setUpperBound(upperBound);
+    }
+
+    public double getLowerBound() { return lowerBound; }
+    public double getUpperBound() { return upperBound; }
+
+    public void setLowerBound(double lowerBound) { this.lowerBound = lowerBound; }
+    public void setUpperBound(double upperBound) { this.upperBound = upperBound; }
+
+    public double getWidth() { return getUpperBound() - getLowerBound(); }
+}
+----
+
+But why do this?
+Why go to all this extra trouble while clearly the wrong version provides the exact same functionality as the correct version?
+
+The reason is that you never know beforehand how your class will evolve.
+Software engineering is not about making your code work, but also prepare it for potential future changes.
+For example, in ``Interval``'s case, we could choose to forbid it from having `lowerBound` be greater than `upperBound` (note that this restriction is **not** a particularly good idea.)
+
+In the version with public `lowerBound` and `upperBound` fields, there is no way for us to enforce this rule.
+We would need to make the following modifications:
+
+* Prohibit direct access to the fields by making them private.
+* Allow the user to read the fields' values by introducing `getLowerBound` and `getUpperBound`.
+* Allow the user to change the fields' values by introducing `setLowerBound` and `setUpperBound`.
+  Both these methods should validate their inputs and throw an exception in case the rules are violated.
+
+[source,java]
+.Java Interval class: correct implementation
+----
+public class Interval
+{
+    private double lowerBound;
+
+    private double upperBound;
+
+    public Interval(double lowerBound, double upperBound)
+    {
+        setLowerBound(lowerBound);
+        setUpperBound(upperBound);
+    }
+
+    public double getLowerBound() { return lowerBound; }
+    public double getUpperBound() { return upperBound; }
+
+    public double getWidth()      { return getUpperBound() - getLowerBound(); }
+
+    public void setLowerBound(double lowerBound)
+    {
+        if ( lowerBound > upperBound )
+        {
+            throw new IllegalArgumentException();
+        }
+
+        this.lowerBound = lowerBound;
+    }
+
+    public void setUpperBound(double upperBound)
+    {
+        if ( lowerBound > upperBound )
+        {
+            throw new IllegalArgumentException();
+        }
+
+        this.upperBound = upperBound;
+    }
+}
+----
+
+IMPORTANT: Note that this code contains a bug. 🎂 for the first one to find it.
+
+But why not make these changes when necessary?
+Originally, no restriction was in place, so no getters or setters were necessary.
+Only after the extra rule was imposed did the need arise for them.
+We could start off with public fields and then migrate to getters and setters as necessary.
+
+This is a bad idea as the client code would be impacted:
+
+[source,java]
+.Java
+----
+var interval = new Interval(0, 10);
+interval.upperBound += 1;
+----
+
+would need to be updated to
+
+[source,java]
+.Java
+----
+var interval = new Interval(0, 10);
+interval.setUpperBound(interval.getUpperBound() + 1);
+----
+
+If changing a class leads you to have to update client code, you know you've made a design mistake.
+One of your main priorities should be to ensure that change can remain localized: you don't want a modification to ripple through your entire code base.
+Here, getters and setters form a kind of a "barrier": they allow you to update the class without this affecting the outside world.
+
+In other words, Java forces you to "preventively overengineer" your class so that future changes don't impact other code.
+This is known as the **Uniform Access Principle**.
+
+=== Uniform Access Principle
+
+[quote, Bertrand Meyer, Object-Oriented Software Construction]
+All services offered by a module should be available through a uniform notation, which does not betray whether they are implemented through storage or through computation.
+
+The Uniform Access Principle states that the syntax should not betray whether you are accessing data (a field) or code (a method).
+Java uses different syntax for each:
+
+[source,java]
+.Java
+----
+// Field access
+object.member
+
+// Method access
+object.member()
+----
+
+The parentheses betray that you are in fact calling a method.
+Java can be said that it violated the Uniform Access Principle.
+To circumvent this problem, Java programmers simply pretend there is no such thing as fields: if every (public) member is a method, there is nothing else to be inconsistent with.
+All member accesses need parentheses.
+
+This approach works, but as mentioned above, it requires a bit of extra work, so much so that Java IDEs provide ways to automatically generate getters and setters for you.
+It is the opinion of this writer that any language that requires such code generation is severely flawed.
