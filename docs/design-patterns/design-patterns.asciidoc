@@ -9,6 +9,7 @@
 :experimental:
 :source-highlighter: rouge
 :cakepoint: 🎂
+:icons: font
 
 = Design Patterns
 
@@ -134,7 +135,7 @@ public class Interval
 }
 ----
 
-[NOTE,caption={cakepoint}]
+[WARNING]
 .Cakepoint opportunity
 ====
 Note that this code contains a bug.
@@ -149,7 +150,6 @@ We could start off with public fields and then migrate to getters and setters as
 This is a bad idea as the client code would be impacted:
 
 [source,java]
-.Java
 ----
 var interval = new Interval(0, 10);
 interval.upperBound += 1;
@@ -158,7 +158,6 @@ interval.upperBound += 1;
 would need to be updated to
 
 [source,java]
-.Java
 ----
 var interval = new Interval(0, 10);
 interval.setUpperBound(interval.getUpperBound() + 1);
@@ -289,14 +288,14 @@ interval.UpperBound += 10;
 
 In the case that `UpperBound` is a property, ``UpperBound``'s `set` code will be executed where `value` is set to its new value.
 
-[NOTE,caption={cakepoint}]
+[WARNING]
 .Cakepoint opportunity
 ====
 There actually still is a Uniform Access Principle violation, but where?
 ====
 
-Due to this hidden violation, it is still highly recommended not to work with public fields in C# and to only expose properties.
-In order to limit the need for boilerplate, C# offers a shorthand notation for getters and setters that perform no additional tasks but getting and setting a variable, respectively.
+Due to this hidden violation, it is still highly recommended not to work with public fields and instead to only expose properties.
+In order to limit the need for boilerplate code, C# offers a shorthand notation for getters and setters that perform no additional tasks but getting and setting a variable, respectively.
 
 [source,csharp]
 .C# Interval with auto-implemented properties
@@ -309,17 +308,198 @@ public class Interval
         this.UpperBound = upperBound;
     }
 
-    public double LowerBound { get; set; }
+    public double LowerBound { get; set; }  // <1>
 
-    public double UpperBound { get; set; }
+    public double UpperBound { get; set; }  // <1>
 
-    public double Width => UpperBound - LowerBound;
+    public double Width => UpperBound - LowerBound;  // <2>
 }
 ----
+<1> `{ get; set; }` generates a private field and code that gets and sets this field.
+<2> Shorthand syntax expressing that ``Width``'s getter returns `UpperBound - LowerBound`.
 
-Here, `{ get; set; }` generates a private field and code that gets and sets this field.
-In other words, some boilerplate code is still required in order to preserve the Uniform Access Principle.
+As you can see, some boilerplate code is still required in order to preserve the Uniform Access Principle in C#.
 
 === Ruby
 
+Ruby simply does not allow direct access to an object's fields.
+Instead, you need to rely on methods.
+Does this mean Ruby works the same as Java?
+Not quite.
+
+Since public fields are not an option, we are forced to make use of getters and setters.
+Translating it straight from Java would give us
+
+[source,ruby]
+.Ruby Interval class
+----
+class Interval
+    def initialize(lower_bound, upper_bound)
+        @lower_bound = lower_bound  <1>
+        @upper_bound = upper_bound
+    end
+
+    def get_lower_bound
+        return @lower_bound
+    end
+
+    def get_upper_bound
+        return @upper_bound
+    end
+
+    def set_lower_bound(value)
+        @lower_bound = value
+    end
+
+    def set_upper_bound(value)
+        @upper_bound = value
+    end
+end
+----
+
+Here we are again with our getter/setter boilerplate code.
+However, Ruby allows you to forgo this by relying on the `attr_accessor` helper method:
+
+[source,ruby]
+.Ruby Interval class with metaprogramming
+----
+class Interval
+    def initialize(lower_bound, upper_bound)
+        @lower_bound = lower_bound  <1>
+        @upper_bound = upper_bound
+    end
+
+    attr_accessor :lower_bound, :upper_bound
+end
+----
+
+`attr_accessor` takes the class currently being defined, `Interval` in our case, and adds methods to it.
+Here we ask it to define getters and setters for fields named `lower_bound` and `upper_bound`.
+In other words, Ruby allows writing code that dynamically adds methods to a class.
+
+If we need to impose restrictions on `lower_bound` and `upper_bound`, we can replace this `attr_accessor` call by manually defined methods:
+
+[source,ruby]
+.Ruby Interval class
+----
+class Interval
+    def initialize(lower_bound, upper_bound)
+        @lower_bound = lower_bound  <1>
+        @upper_bound = upper_bound
+    end
+
+    def lower_bound
+        @lower_bound  # <2>
+    end
+
+    def upper_bound
+        @upper_bound
+    end
+
+    def lower_bound=(value)  # <3>
+        @lower_bound = value
+    end
+
+    def upper_bound=(value)
+        @upper_bound = value
+    end
+end
+----
+<1> Fields are always private and prefixed with a `@`. It is not possible to access a field from outside the object: `interval.@lower_bound` is syntactically incorrect.
+<2> Using ``return`` is optional in Ruby: the value of the expression evaluated last is returned automatically.
+<3> Setter method. `interval.lower_bound = 5` calls this method with `value` set to `5`.
+
+When calling a method, parentheses are optional: `foo()` and `foo` are interchangeable.
+This syntactic features allows a method call to look like a field access:
+
+[source,ruby]
+----
+interval = Interval.new
+x = interval.lower_bound   # <1>
+interval.upper_bound += 1  # <2>
+----
+<1> Despite the lack of parentheses, this is a method call.
+<2> This calls `upper_bound=`.
+
+If such simple validation were common in your code, you could define a new auxiliary methods as follows:
+
+[source,ruby]
+----
+class Class  # <1>
+  def simple_constructor(*symbols)  # <2>
+    define_method :initialize do |*args|
+      symbols.zip(args).each do |symbol, value|
+        instance_variable_set "@#{symbol}", value
+      end
+    end
+  end
+
+  def validated_attr_accessor(symbol, &block)  # <3>
+    define_method symbol do
+      instance_variable_get "@#{symbol}"
+    end
+
+    define_method "#{symbol}=" do |value|
+      raise ArgumentError, "Invalid #{symbol}" unless instance_exec(value, &block)
+      instance_variable_set "@#{symbol}", value
+    end
+  end
+end
+
+class Interval
+  simple_constructor :lower_bound, :upper_bound  # <4>
+
+  validated_attr_accessor(:lower_bound) { |value| value <= upper_bound }  # <5>
+  validated_attr_accessor(:upper_bound) { |value| value >= lower_bound }  # <5>
+end
+----
+<1> The `Class` class already exists, but Ruby allows us to "reopen its definition" to add extra members.
+<2> `simple_constructor` defines a constructor that simply copies values into fields.
+<3> `validated_attr_accessor` adds a getter and a setter that validates its input.
+<4> We make use of `simple_constructor` to define a constructor with two parameters whose values are copied in fields named `@lower_bound` and `@upper_bound`, respectively.
+
 === Python
+
+Python fully embraces public fields:
+
+[source,python]
+.Python with public fields
+----
+class Interval:
+    def __init__(self, lower_bound, upper_bound):
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
+----
+
+If a field needs to be upgraded to something smarter (e.g. validation), one can turn it into a property:
+
+[source,python]
+.Python with properties
+----
+class Interval:
+    def __init__(self, lower_bound, upper_bound):
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
+
+    @property
+    def lower_bound(self):
+        return self.__lower_bound
+
+    @lower_bound.setter
+    def lower_bound(self, lower_bound):
+        if lower_bound > self.upper_bound:
+            raise AttributeError()
+        self.__lower_bound = lower_bound
+
+    @property
+    def upper_bound(self):
+        return self.__upper_bound
+
+    @upper_bound.setter
+    def upper_bound(self, upper_bound):
+        if self.lower_bound > upper_bound:
+            raise AttributeError()
+        self.__upper_bound = upper_bound
+----
+
+There is nothing magical about properties: they are built on top of https://www.python.org/dev/peps/pep-0318/[decorators] and https://docs.python.org/3/howto/descriptor.html[descriptor objects].
