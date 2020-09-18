@@ -1,12 +1,14 @@
 :tip-caption: 💡
 :note-caption: ℹ️
 :important-caption: ⚠️
+:warning-caption: ⚠️
 :task-caption: 👨‍🔧
 :nofooter:
 :toc: left
 :toclevels: 3
 :experimental:
 :source-highlighter: rouge
+:cakepoint: 🎂
 
 = Design Patterns
 
@@ -132,7 +134,12 @@ public class Interval
 }
 ----
 
-IMPORTANT: Note that this code contains a bug. 🎂 for the first one to find it.
+[NOTE,caption={cakepoint}]
+.Cakepoint opportunity
+====
+Note that this code contains a bug.
+Can you find it?
+====
 
 But why not make these changes when necessary?
 Originally, no restriction was in place, so no getters or setters were necessary.
@@ -187,5 +194,132 @@ Java can be said that it violated the Uniform Access Principle.
 To circumvent this problem, Java programmers simply pretend there is no such thing as fields: if every (public) member is a method, there is nothing else to be inconsistent with.
 All member accesses need parentheses.
 
-This approach works, but as mentioned above, it requires a bit of extra work, so much so that Java IDEs provide ways to automatically generate getters and setters for you.
+This approach works, but as mentioned above, it requires a bit of boilerplate code, so much so that Java IDEs provide ways to automatically generate getters and setters for you.
 It is the opinion of this writer that any language that requires such code generation is severely flawed.
+
+But how do other languages solve this problem?
+
+=== C#
+
+C#'s https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/properties[properties] allow you to gracefully turn data (fields) into code.
+Let's start with public fields:
+
+[source,csharp]
+.C# Interval with public fields
+----
+public class Interval
+{
+    public Interval(double lowerBound, double upperBound)
+    {
+        this.LowerBound = lowerBound;
+        this.UpperBound = upperBound;
+    }
+
+    public double LowerBound;
+
+    public double UpperBound;
+
+    public double Width
+    {
+        get { return UpperBound - LowerBound; }
+    }
+}
+----
+
+We update this code to include the restrictions on `LowerBound` and `UpperBound`:
+
+[source,csharp]
+.C# Interval with properties
+----
+public class Interval
+{
+    private double lowerBound;
+
+    private double upperBound;
+
+    public Interval(double lowerBound, double upperBound)
+    {
+        this.LowerBound = lowerBound;
+        this.UpperBound = upperBound;
+    }
+
+    public double LowerBound
+    {
+        get { return lowerBound; }
+        set
+        {
+            if ( value > UpperBound )
+            {
+                throw new ArgumentException();
+            }
+
+            this.lowerBound = value;
+        }
+    }
+
+    public double UpperBound
+    {
+        get { return upperBound; }
+        set
+        {
+            if ( LowerBound > value )
+            {
+                throw new ArgumentException();
+            }
+
+            this.UpperBound = value;
+        }
+    }
+
+    public double Width
+    {
+        get { return UpperBound - LowerBound; }
+    }
+}
+----
+
+Usage of the `Interval` class is the same, regardless of whether `LowerBound` and `UpperBound` are implemented as regular fields or properties:
+
+[source,csharp]
+.C#, usage of Interval
+----
+var interval = new Interval(0, 10);
+interval.UpperBound += 10;
+----
+
+In the case that `UpperBound` is a property, ``UpperBound``'s `set` code will be executed where `value` is set to its new value.
+
+[NOTE,caption={cakepoint}]
+.Cakepoint opportunity
+====
+There actually still is a Uniform Access Principle violation, but where?
+====
+
+Due to this hidden violation, it is still highly recommended not to work with public fields in C# and to only expose properties.
+In order to limit the need for boilerplate, C# offers a shorthand notation for getters and setters that perform no additional tasks but getting and setting a variable, respectively.
+
+[source,csharp]
+.C# Interval with auto-implemented properties
+----
+public class Interval
+{
+    public Interval(double lowerBound, double upperBound)
+    {
+        this.LowerBound = lowerBound;
+        this.UpperBound = upperBound;
+    }
+
+    public double LowerBound { get; set; }
+
+    public double UpperBound { get; set; }
+
+    public double Width => UpperBound - LowerBound;
+}
+----
+
+Here, `{ get; set; }` generates a private field and code that gets and sets this field.
+In other words, some boilerplate code is still required in order to preserve the Uniform Access Principle.
+
+=== Ruby
+
+=== Python
