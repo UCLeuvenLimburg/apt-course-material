@@ -437,15 +437,87 @@ int Count(List<Person> people, Func<Person, bool> predicate)  // <1>
 <1> `Func<Person, bool>` is the type of a function receiving a `Person` and returning a `bool`.
 <2> Note how the standard function call syntax is preserved.
 
-Instead of having to define a whole new class to wrap a condition, we can make use of lambdas:
+To use this function, we can write
+
+[source,csharp]
+----
+bool IsMinor(Person person)
+{
+    return person.Age < 18;
+}
+
+var minorCount = Count(people, IsMinor);
+----
+
+This is much shorter than having to define an entire class.
+We can go one step further and omit the function definition altogether by using lamdbas:
 
 [source,csharp]
 ----
 var minorCount = Count(people, p => p.Age < 18);
 ----
 
-* Is simply passing code as parameter
-* Java style
-* Ruby blocks
-* C# Action/Func
-* Code > Data
+`p => p.Age < 18` represents a nameless function that takes a parameter `p` whose type `Person` is inferred from the context.
+The function's body is `p.Age < 18`, whose result acts as the return value.
+This notation frees us from having to invent a name for the expression and is syntactically much lighter.
+
+== Ruby
+
+Passing functions as parameters is quite useful.
+Once you get used to it, you will find yourself constantly passing functions around.
+However, if you start building large expressions using lambdas, it can devolve quickly into a syntactic mess.
+For example,
+
+[source,csharp]
+----
+var minorCount = Count( Map( Filter(people, p => p.Gender == Genders.Male ), p => p.Age ), age => age < 18 );
+----
+
+Here we are combining `Count`, `Map` and `Filter`, each of which takes a function parameter.
+However, it is very hard to understand what this piece of code does because of how the expression is structured:
+
+* The operations are listed in reverse order: first the list is filtered, then mapped, then counted on.
+* It is unclear which lambda belongs to which operator as they're visually separated from each other.
+
+Ruby chose to introduce a special syntax for function parameters to try to restore a bit of visual order.
+The above code would be translated as follows:
+
+[source,ruby]
+----
+minorCount = people.select { |p| p.gender == Genders.male }
+                   .map    { |p| p.age }
+                   .count  { |n| n < 18 }
+----
+
+Here, the function parameter comes *after* the parameter list, where there's much more room to put a function.
+This combined with the fact that `select`, `map` and `count` are all members of the `Array` class makes it possible to form a chain where operations are performed from top to bottom.
+
+
+Other languages adopted the same approach of having the lambda parameter outside the parameter list:
+
+* Swift calls them https://docs.swift.org/swift-book/LanguageGuide/Closures.html[trailing closures].
+* Kotlin calls them https://kotlinlang.org/docs/reference/lambdas.html[trailing lambdas].
+
+== Conclusion
+
+Passing functions as parameters is a very powerful idea, so much so that we fake it in languages without direct support for it.
+The infrastructure needed to imitate it is called a design pattern.
+In other words, we could say that design patterns compensate for lacunas in a language.
+This is not limited to the Strategy design pattern: many other patterns are attemps to introduce a feature from another language in your current language.
+
+A few examples:
+
+* Abstract factories fake first class modules (Ruby, O'Caml, &hellip;)
+* Factory methods fake first classes (Ruby, Python, &hellip;)
+* Visitors fake multimethods (C#, Common Lisp)
+* Observers fake first class functions (C#, Ruby, Python, C++, &hellip;)
+
+In fact, we could say that there exist a world of programming concepts independent of languages, such as functions, classes, modules, etc.
+However, no language supports every one of these concepts.
+A design pattern is then a "projection" of the concept onto the language.
+In Java, for example, Strategy explains how functions can be built out of classes.
+Likewise, the complex Visitor design pattern describes how to achieve multiple dispatch by combining classes, etc.
+
+The programming language C does not support classes.
+It is possible though to built them out of structs and function pointers, both supported in C.
+We could therefore say that there is a Class design pattern explaining how to fake classes in C.
