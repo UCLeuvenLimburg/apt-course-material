@@ -249,7 +249,7 @@ Right now, an `Iterator` always receives a "backing collection":
 * `ArrayIterator` fetches its element from an underlying array.
 * `StringIterator` uses a `String` internally.
 
-We can also define iterators that stand on their own.
+We can also define iterators that stand on their own, having no internal data structure to store items in.
 For example, say we want a list of all numbers, starting from a specific value.
 We _could_ create an `ArrayList<Integer>` and start filling it, but that would require a long time as well as an enormous amount of memory.
 A more efficient solution would be
@@ -283,13 +283,84 @@ class NumberIterator implements Iterator<Integer>
 ----
 
 `NumberIterator` can be interpreted as an infinitely long list of increasing integers.
-This is a bit of a leaky abstraction, since the limited range of ``int``s will cause the sequence to drop back to `Integer.MIN_VALUE` after passing `Integer.MAX_VALUE`, but let's ignore that.
+This is a bit of a leaky abstraction, since the limited range of ``int``s will cause the sequence to drop down to `Integer.MIN_VALUE` after exceeding `Integer.MAX_VALUE`, but let's ignore that.
 
 It is important to realize that this "list" does barely occupy any memory, even though it is infinite in size.
 This is due to the fact that we use *code* to represent *data*: the data is *generated* by need.
 
 This is made possible thanks to the limited nature of our `Iterator` interface: if there were more operations like, say, item deletion, we would have to keep track of which elements are deleted so as to know which ones to skip, complicating our implementation.
 Ironically, we would need to keep a list of the elements _not_ in the list.
+
+== Laziness
+
+We can implement operations as ``Iterator``s.
+Say for example, given a list represented by an `Iterator<T>`, we want to produce a new list whose elements satisfy a certain condition represented by some `Predicate<T>`.
+We can implement this as follows:
+
+[source,java]
+----
+class FilteringIterator<T> implements Iterator<T>
+{
+    private Iterator<T> iterator;
+
+    private final Predicate<T> predicate;
+
+    private T current;
+
+    public FilteringIterator(Iterator<T> list, Predicate<T> predicate)
+    {
+        this.iterator = list;
+        this.predicate = predicate;
+    }
+
+    public T current()
+    {
+        return current;
+    }
+
+    public void next()
+    {
+        current = iterator.current();
+
+        advanceToNext();
+    }
+
+    public boolean hasNext()
+    {
+        return iterator != null;
+    }
+
+    private void advanceToNext()
+    {
+        if ( !iterator.hasNext() )
+        {
+            iterator = null;
+        }
+        else
+        {
+            iterator.next();
+
+            while ( !predicate.call(iterator.current()) )
+            {
+                if ( !iterator.hasNext() )
+                {
+                    iterator = null;
+                    return;
+                }
+
+                iterator.next();
+            }
+        }
+    }
+}
+----
+
+[NOTE,caption={cakepoint}]
+====
+The implementation of `FilteringIterator` is rather complex.
+This is mostly due to how we defined the `Iterator` interface: it offers the possibility to "peek into the future" through `hasNext()`, which causes trouble.
+Can you find a different way to define `Iterator` so that filtering becomes easier to implement?
+====
 
 == Python, C#, JavaScript
 
