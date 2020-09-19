@@ -282,6 +282,15 @@ class NumberIterator implements Iterator<Integer>
 }
 ----
 
+`NumberIterator` can be interpreted as an infinitely long list of increasing integers.
+This is a bit of a leaky abstraction, since the limited range of ``int``s will cause the sequence to drop back to `Integer.MIN_VALUE` after passing `Integer.MAX_VALUE`, but let's ignore that.
+
+It is important to realize that this "list" does barely occupy any memory, even though it is infinite in size.
+This is due to the fact that we use *code* to represent *data*: the data is *generated* by need.
+
+This is made possible thanks to the limited nature of our `Iterator` interface: if there were more operations like, say, item deletion, we would have to keep track of which elements are deleted so as to know which ones to skip, complicating our implementation.
+Ironically, we would need to keep a list of the elements _not_ in the list.
+
 == Python, C#, JavaScript
 
 Generators
