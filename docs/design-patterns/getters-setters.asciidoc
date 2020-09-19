@@ -1,5 +1,12 @@
 = Getters and Setters
 
+While getters and setters are typically not seen as a design pattern, they do fit the definition: they're ubiquitous in Java code and attempt to solve a specific problem.
+In this section, we aim to show
+
+* which problem getters and setters solve;
+* which approach other programming languages take to the same problem;
+* that solutions to problems are neither absolute nor universal.
+
 == Java
 
 Take a quick look at the code below.

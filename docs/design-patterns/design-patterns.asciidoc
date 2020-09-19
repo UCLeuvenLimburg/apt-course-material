@@ -29,3 +29,4 @@ Let us have a closer look at some of these.
 
 include::getters-setters.asciidoc[leveloffset=1]
 include::strategy.asciidoc[leveloffset=1]
+include::iterator.asciidoc[leveloffset=1]

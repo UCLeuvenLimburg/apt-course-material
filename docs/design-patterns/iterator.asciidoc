@@ -1,0 +1,297 @@
+= Iterators
+
+If design patterns can be used to "plug holes" in programming languages, one might conclude that all languages are interchangeable.
+However, these plugs can get quite complex and fragile:
+
+* They often involve boilerplate code.
+* They can be complex to implement.
+* The same code can often not be reused, causing you to have to rewrite code for each separate case.
+* Concepts implemented as design patterns are inherently more fragile than having them provided as language features.
+
+In this section, we intend to show that having language support can actually have benefits.
+
+
+== Java
+
+Let's revisit our `count` algorithm from a previous section.
+We generalize it so it can work on any type `T` instead of being restricted to ``Person``s.
+
+[source,java]
+----
+interface Predicate<T>
+{
+    boolean call(T argument);
+}
+
+<T> int count(ArrayList<T> xs, Predicate<T> predicate)
+{
+    var result = 0;
+
+    for ( var x : xs )
+    {
+        if ( predicate.call(x) )
+        {
+            result++;
+        }
+    }
+
+    return result;
+}
+----
+
+This works, and we can be proud that it works on any kind of element, but unfortunately it's still limited in that it only works on ``ArrayList``s.
+The current container type (`ArrayList`) is clearly too specific.
+In order to make `count` maximally reusable, we need to determine exactly what `count` needs of its argument `xs`.
+
+If we look at the code, we see that `count` merely iterates over `xs`.
+It doesn't use indexing, doesn't ask for the size, doesn't remove from or add elements to `xs`.
+This means we need to use a container type that *only* exposes iteration.
+Any extra operation reduces the number of types which `count` can work on.
+
+Java libraries like to use `Collection`, but this makes little sense as `Collection` exposes way too much functionality.
+A better choice would be `Iterable`:
+
+* It provides the method `iterator()` which allows us to iterate over the sequence, which is exactly what we need.
+* It provides *only* the method `iterator()`, so it doesn't require anything more than strictly necessary from the client.
+
+[WARNING]
+====
+While `Iterable` does indeed have only one method `iterator()`, the object it returns allows us to remove elements from a sequence.
+Ideally, this operation should not be available.
+====
+
+[source,java]
+----
+<T> int count(Iterable<T> xs, Predicate<T> predicate)
+{
+    var result = 0;
+
+    for ( var x : xs )
+    {
+        if ( predicate.call(x) )
+        {
+            result++;
+        }
+    }
+
+    return result;
+}
+----
+
+With only minimal changes, this new version of `count` works on many kinds of collections: `ArrayList`, `HashSet`, `LinkedList`, `TreeSet`, &hellip;
+There's a snag though:
+
+* In Java, arrays do not implement `Iterable` for some reason, so `count` can not operate on them.
+* `String` suffers from a similar problem: one would expect it to implement `Iterable<Character>`, but it mysteriously does not.
+* There are many other classes whose objects one could iterate over, but which is made impossible because they do not implement `Iterable`.
+
+This problem is not limited to `count`: there are _many_ algorithms that simply need to be able to iterate over a sequence of elements.
+Each of these will be limited in its applicability. How can we solve this problem?
+
+== Iterators
+
+One solution could be to add implementations of interfaces to existing classes.
+That way, we could define `iterate()` for arrays, ``String``s and any other class we need to iterate over.
+Unfortunately, Java does not allow this (unlike languages like Go and Haskell.)
+Right now, the "iterability" of a class is part of the class itself: the class has to declare it by implementing the `Iterable` interface.
+Is there a way to separate the "iterability" from the class?
+This is where the Iterator design pattern comes in.
+
+The Iterator design pattern involves having an object that can be used to iterate over a sequence.
+A possible implementation would be
+
+[source,java]
+----
+interface Iterator<T>
+{
+    T current();        // <1>
+    void next();        // <2>
+    boolean hasNext();  // <3>
+}
+----
+<1> Returns the element the iterator is currently looking at.
+<2> Moves the iterator over to the next element in the sequence.
+<3> Checks if there are any elements left.
+
+[NOTE]
+====
+While Java already provides an `Iterator` interface, we prefer to define our own:
+
+* We want an iterator to be specialized in iterating. Removing items has no business here.
+* We provide separate `current()` and `next()` methods: this way each method have more focused responsibilities and it gives us more flexibility later on.
+====
+
+Using this interface, we could implement `count` as
+
+[source,java]
+----
+<T> int count(Iterator<T> iterator, Predicate<T> predicate)
+{
+    var result = 0;
+
+    while ( iterator.hasNext() )
+    {
+        iterator.next();
+
+        if ( predicate.call(iterator.current()) )
+        {
+            result++;
+        }
+    }
+
+    return result;
+}
+----
+
+This version of `count` can potentially work with *any* class `C`, since it is always possible to define an `Iterator` subclass specializing in iterator over `C` objects.
+For example, here are a couple of potential implementations:
+
+[source,java]
+.Adapts a standard Java iterator into our iterator
+----
+class IteratorAdapter<T> implements Iterator<T>
+{
+    private final java.util.Iterator<T> wrapped;
+
+    private T current;
+
+    public IteratorAdapter(java.util.Iterator<T> iterator)
+    {
+        this.wrapped = iterator;
+    }
+
+    public T current()
+    {
+        return current;
+    }
+
+    public void moveNext()
+    {
+        current = wrapped.next();
+    }
+
+    public boolean hasNext()
+    {
+        return wrapped.hasNext();
+    }
+}
+----
+
+[source,java]
+.Iterator for arrays
+----
+class ArrayIterator<T> implements Iterator<T>
+{
+    private final T[] array;
+
+    private int current;
+
+    public ArrayIterator(T[] array)
+    {
+        this.array = array;
+        this.current = -1;
+    }
+
+    public T current()
+    {
+        return array[current];
+    }
+
+    public void moveNext()
+    {
+        current++;
+    }
+
+    public boolean hasNext()
+    {
+        return current < array.length;
+    }
+}
+----
+
+[source,java]
+.Iterator for strings
+----
+class StringIterator implements Iterator<Character>
+{
+    private final String string;
+
+    private int current;
+
+    public StringIterator(String string)
+    {
+        this.string = string;
+        this.current = -1;
+    }
+
+    public Character current()
+    {
+        return string.charAt(current);
+    }
+
+    public void moveNext()
+    {
+        current++;
+    }
+
+    public boolean hasNext()
+    {
+        return current < string.length;
+    }
+}
+----
+
+=== Virtual Sequences
+
+Right now, an `Iterator` always receives a "backing collection":
+
+* `IteratorAdapter` relies on a `java.util.Iterator` to feed it items.
+* `ArrayIterator` fetches its element from an underlying array.
+* `StringIterator` uses a `String` internally.
+
+We can also define iterators that stand on their own.
+For example, say we want a list of all numbers, starting from a specific value.
+We _could_ create an `ArrayList<Integer>` and start filling it, but that would require a long time as well as an enormous amount of memory.
+A more efficient solution would be
+
+[source,java]
+----
+class NumberIterator implements Iterator<Integer>
+{
+    private int current;
+
+    public NumberIterator(int initialValue)
+    {
+        this.current = initialValue;
+    }
+
+    public Integer current()
+    {
+        return current;
+    }
+
+    public void moveNext()
+    {
+        current++;
+    }
+
+    public boolean hasNext()
+    {
+        return true;
+    }
+}
+----
+
+== Python, C#, JavaScript
+
+Generators
+
+== Haskell
+
+Laziness
+
+== Other Similar Cases
+
+* Visitor
+
+Many of these topics return in functional programming

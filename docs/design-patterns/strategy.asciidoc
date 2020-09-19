@@ -1,8 +1,10 @@
 = Strategy
 
 The Strategy design pattern is actually of one the most basic patterns in existence.
-In fact, in many language it is not even considered a pattern at all, but simply "obvious".
-But why did it end up in the pantheon of design patterns, then?
+In fact, in many language it is not even considered a pattern at all, but simply "obvious."
+Why did it end up in the pantheon of design patterns, then?
+
+In this section, we attempt to illustrate how design patterns are meant to fill "gaps" in programming languages.
 
 == Working Example
 
@@ -505,19 +507,19 @@ The infrastructure needed to imitate it is called a design pattern.
 In other words, we could say that design patterns compensate for lacunas in a language.
 This is not limited to the Strategy design pattern: many other patterns are attemps to introduce a feature from another language in your current language.
 
-A few examples:
+A few Java-centric examples:
 
 * Abstract factories fake first class modules (Ruby, O'Caml, &hellip;)
 * Factory methods fake first classes (Ruby, Python, &hellip;)
 * Visitors fake multimethods (C#, Common Lisp)
 * Observers fake first class functions (C#, Ruby, Python, C++, &hellip;)
 
-In fact, we could say that there exist a world of programming concepts independent of languages, such as functions, classes, modules, etc.
-However, no language supports every one of these concepts.
-A design pattern is then a "projection" of the concept onto the language.
-In Java, for example, Strategy explains how functions can be built out of classes.
-Likewise, the complex Visitor design pattern describes how to achieve multiple dispatch by combining classes, etc.
-
-The programming language C does not support classes.
-It is possible though to built them out of structs and function pointers, both supported in C.
+What is considered a design pattern depends on the language.
+For example, the programming language C does not support classes, though it is possible to built them out of structs and function pointers, both supported in C.
 We could therefore say that there is a Class design pattern explaining how to fake classes in C.
+
+We could say that there exist a whole world of programming concepts independent of languages, such as functions, classes, modules, etc.
+However, no language supports every one of these concepts.
+A design pattern in a language X is then a "projection" of the concept onto that language X.
+In Java, for example, Strategy explains how functions can be built out of classes.
+Likewise, the complex Visitor design pattern describes how to achieve multiple dispatch by repeated use of overriding, etc.
