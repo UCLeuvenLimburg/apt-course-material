@@ -362,9 +362,146 @@ This is mostly due to how we defined the `Iterator` interface: it offers the pos
 Can you find a different way to define `Iterator` so that filtering becomes easier to implement?
 ====
 
-== Python, C#, JavaScript
+We could have implemented the filtering functionalityh in a more straightforward way:
 
-Generators
+[source,java]
+----
+<T> Iterator<T> filter(Iterator<T> iterator, Predicate<T> predicate)
+{
+    var result = new ArrayList<T>();
+
+    while ( iterator.hasNext() )
+    {
+        iterator.next();
+
+        var current = iterator.current();
+        if ( predicate.call(current) )
+        {
+            result.add(current);
+        }
+    }
+
+    return new IteratorAdapter<T>(result);
+}
+----
+
+This `filter` function returns a _new_ list that contains all the elements of the given list that satisfy a certain condition.
+This list consumes extra memory to hold all the "surviving" elements and could take a while to create, depending on the size of the involved lists and the complexity of the predicate.
+
+Using the `FilteringIterator` approach, there is no second list of filtering items.
+Instead, we have an `Iterator` that filters elements *on demand*.
+It requires very little memory, even if there are actually many items in the filtered result.
+If filtering involves heavy computations, these are spread out in time and might even never take place if only part of the resulting list is used.
+This kind of on-demand processing is said to be *lazy*.
+
+One important in which both approaches differ is: what happens when the original list is changed after the filtering operation?
+
+* The result returned by `filter` will not notice.
+* The `FilteringIterator` list will be impacted: it might go as far as crash in some situations.
+
+We will return to this in a later chapter.
+
+== Generators
+
+Compare the implementations of `filter` and `FilteringIterator`.
+They provide (more or less) the same functionality, but their implementation is quite different.
+`filter` is a regular function: it takes the lead and actively starts the filtering algorithm, whereas `FilteringIterator` spreads the logic out over multiple methods and fields.
+In this writer's opinion, `FilteringIteration` is the more complex of both implementation.
+
+However, laziness has its advantages; it is a pity that it's harder to implement.
+Fortunately, some language designers understood the benefits of laziness and decided to add support for it in their language.
+
+One approach, taken by Python, C# and JavaScript, is to provide https://en.wikipedia.org/wiki/Generator_(computer_programming)[*generators*].
+
+=== Python
+
+[source,python]
+.Example of a generator
+----
+def divisible_by(n, divider):
+    return n % divider == 0
+
+def primes():
+    n = 2
+    while True:
+        if not any(divisible_by(n, k) for k in range(2, n)):
+            yield n
+        n += 1
+----
+
+`primes()` is not a regular function: when called, none of the function's body is executed.
+Instead, a generator object is returned, which represents a sequence of items.
+When asked for the first element, ``primes``'s body starts getting executed, up until the first `yield` is reached.
+Whatever is ``yield``ed is considered the first element of this list.
+In our case, it is the first prime number, `2`.
+
+When the second element of the list is requested, execution continues where it left off and will continue until `yield` is reached a second time.
+This occurs due to the fact that execution is stuck in an infinite loop (`while True`).
+The second `yield` will produce the second prime number, `3`.
+
+[source,python]
+.Printing all primes
+----
+for prime in primes():
+    print(prime)
+----
+
+The above loop will never end, as `primes()` returns an infinite list.
+
+=== JavaScript & TypeScript
+
+JavaScript (and by extension also TypeScript) offers the same functionality:
+
+[source,javascript]
+----
+function divisible_by(n, divider)
+{
+    return n % divider === 0;
+}
+
+function is_prime(n)
+{
+    for ( let k = 2; k < n; ++k )
+    {
+        if ( divisible_by(n, k) )
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function* primes()  // <1>
+{
+    let n = 2;
+
+    while ( true )
+    {
+        if ( is_prime(n) )
+        {
+            yield n;  // <2>
+        }
+
+        n++;
+    }
+}
+
+for ( const prime of primes() )
+{
+    console.log(prime);
+}
+----
+<1> Generator functions are declared using `function*` instead of `function`.
+<2> JavaScript uses the same `yield` keyword.
+
+[NOTE,caption={cakepoint}]
+.Cakepoint opportunity
+====
+Generators can be easily recognized: they `yield` their result.
+Why do you think the extra `*` has been added to `function` to designate generators?
+Isn't it redundant?
+====
 
 == Haskell
 
