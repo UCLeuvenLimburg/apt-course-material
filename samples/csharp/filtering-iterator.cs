@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace IteratorDemo
+namespace ConsoleApp2
 {
     interface Iterator<T>
     {
@@ -79,6 +79,21 @@ namespace IteratorDemo
 
                     iterator.Next();
                 }
+            }
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var rit = new RangeIterator(0, 10);
+            var it = new FilteringIterator<int>(rit, x => x % 3 == 0);
+
+            while ( it.HasNext )
+            {
+                it.Next();
+                Console.WriteLine(it.Current);
             }
         }
     }
