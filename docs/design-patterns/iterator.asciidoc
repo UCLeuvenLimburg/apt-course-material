@@ -503,12 +503,70 @@ Why do you think the extra `*` has been added to `function` to designate generat
 Isn't it redundant?
 ====
 
+=== C#
+
+[source,csharp]
+----
+public static bool IsPrime(int n)
+{
+    return n >= 2 && Range(2, n - 2).All(k => n % k != 0);
+}
+
+public static IEnumerable<int> Primes()  // <1>
+{
+    var n = 2;
+
+    while ( true )
+    {
+        if (IsPrime(n))
+        {
+            yield return n;  // <2>
+        }
+
+        n++;
+    }
+}
+----
+<1> Generators must return an `IEnumerable<T>`.
+<2> C# uses `yield return` to produce an element.
+
 == Haskell
 
-Laziness
+In Haskell, everything is lazy by default.
+One can simply define a function `primes` that returns an infinite list.
+This list will only be generated when its elements are actually required for further computations.
 
-== Other Similar Cases
+[source,haskell]
+----
+n `divisibleBy` k = n `rem` k == 0
 
-* Visitor
+reject predicate = filter (not . predicate)
 
-Many of these topics return in functional programming
+primes = aux [2..]
+  where
+    aux (n:ns) = n : aux (reject (`divisibleBy` n) ns)
+----
+
+== Other Examples
+
+The Iterator design pattern has many benefits, but its implementation can be hard to get right.
+With the necessary language support, it is possible to reap these benefits without having to write complex code.
+Some other examples of design patterns with complex implementations are
+
+* https://en.wikipedia.org/wiki/Visitor_pattern[Visitor]: implementing multiple dispatch in Java requires a lot of copy pasting.
+  Languages such as C# and Common Lisp directly support multiple dispatch.
+* https://en.wikipedia.org/wiki/Interpreter_pattern[Interpreter]: this is basically developing a whole new language.
+  Common Lisp (and variants) is probably the language which allows you to define new mini-languages with the least work.
+  With some languages like Ruby you can rely on shallow embedding to define your own mini-languages, albeit with more restrictions than Common Lisp.
+* https://en.wikipedia.org/wiki/Active_object[Active Object]: this involves recreating Elixir's processes in Java.
+* https://en.wikipedia.org/wiki/Asynchronous_method_invocation[Asynchronous invocation of methods]: C# and JavaScript `async` and `await` can be recreated manually in Java.
+
+== Conclusion
+
+Design patterns generally embody good ideas.
+For example, using https://en.wikipedia.org/wiki/State_pattern[State] can often make classes easier to implement thanks to the extra structure it mandates, but unfortunately, it also requires a lot of extra typing.
+https://en.wikipedia.org/wiki/Dependency_injection[Dependency Injection] is also a pattern that can also be used universally, but again, it requires that bit of extra work.
+
+If you were to set out to write "really nice code" that follows each of these guidelines and best practices, you'd end up with what would be considered by many as an overengineered monstrosity.
+And therein lies the rub: if following best practices requires an inordinate amount of work, no one is going to bother doing the extra work and settle for less.
+However, if the language actually _helps_ the programmer writing good code by directly featuring these ideas, the cost of good design becomes much lower.
