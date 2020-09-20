@@ -3,7 +3,6 @@ Require Import Peano_dec.
 Require Import Omega.
 
 
-
 Definition maximum (ns : list nat) (H : ~ ns = nil) : { max : nat | In max ns /\ forall n : nat, In n ns -> n <= max }.
   destruct ns.
   - contradiction.
