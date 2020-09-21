@@ -1,0 +1,1 @@
+: palindrome? ( string -- ? ) dup reverse = ;
