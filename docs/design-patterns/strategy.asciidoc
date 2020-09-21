@@ -300,7 +300,7 @@ For example, it'd be nice would be able to write something like
 
 [source,java]
 ----
-int countByGenderAndAge(List<Person> people, Condition condition)
+int count(List<Person> people, Condition condition)
 {
     var count = 0;
 
@@ -472,7 +472,7 @@ For example,
 
 [source,csharp]
 ----
-var minorCount = Count( Map( Filter(people, p => p.Gender == Genders.Male ), p => p.Age ), age => age < 18 );
+var minorMaleCount = Count( Map( Filter(people, p => p.Gender == Genders.Male ), p => p.Age ), age => age < 18 );
 ----
 
 Here we are combining `Count`, `Map` and `Filter`, each of which takes a function parameter.
@@ -486,14 +486,13 @@ The above code would be translated as follows:
 
 [source,ruby]
 ----
-minorCount = people.select { |p| p.gender == Genders.male }
-                   .map    { |p| p.age }
-                   .count  { |n| n < 18 }
+minor_male_count = people.select { |p| p.gender == Genders.male }
+                         .map    { |p| p.age }
+                         .count  { |n| n < 18 }
 ----
 
 Here, the function parameter comes *after* the parameter list, where there's much more room to put a function.
 This combined with the fact that `select`, `map` and `count` are all members of the `Array` class makes it possible to form a chain where operations are performed from top to bottom.
-
 
 Other languages adopted the same approach of having the lambda parameter outside the parameter list:
 
