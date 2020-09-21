@@ -1,11 +1,7 @@
-pick(Xs, X, Rest) :-
-    member(X, Xs),
-    delete(Xs, X, Rest).
-
 solve(Ns, Goal) :- member(Goal, Ns).
 solve(Ns, Goal) :-
-    pick(Ns, X, R),
-    pick(R, Y, R2),
+    select(X, Ns, R),
+    select(Y, R, R2),
     (
     	Z is X + Y
     ;   Z is X - Y
@@ -30,7 +26,7 @@ solve2(Ns, Goal, N) :-
     member(N, Ns),
     value(N, Goal).
 solve2(Ns, Goal, Solution) :-
-    pick(Ns, X, R),
-    pick(R, Y, R2),
+    select(X, Ns, R),
+    select(Y, R, R2),
     member(Op, [+, -, *, /]),
     solve2([(Op, X, Y) | R2], Goal, Solution).
