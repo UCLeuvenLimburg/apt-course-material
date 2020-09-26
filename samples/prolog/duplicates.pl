@@ -1,2 +1,2 @@
-duplicates([X|Xs], X) :- member(X, Xs).
-duplicates([_|Xs], X) :- duplicates(Xs, X).
+duplicated([X|Xs], X) :- member(X, Xs).
+duplicated([_|Xs], X) :- duplicated(Xs, X).
