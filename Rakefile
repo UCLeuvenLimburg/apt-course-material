@@ -22,7 +22,7 @@ end
 
 task :upload do
     Dir.chdir 'dist' do
-        puts `ssh -p 22345 -l upload leone.ucll.be rm -rf /home/frederic/courses/apt/volume/*`
-        `scp -P 22345 -r * upload@leone.ucll.be:/home/frederic/courses/apt/volume`
+        `ssh -p 22345 -l upload leone.ucll.be rm -rf /home/frederic/courses/apt/volume/*`
+        puts `scp -P 22345 -r * upload@leone.ucll.be:/home/frederic/courses/apt/volume`
     end
 end
