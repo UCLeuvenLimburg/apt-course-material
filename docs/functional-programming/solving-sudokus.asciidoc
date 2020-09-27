@@ -1,3 +1,4 @@
+// ROOT
 :tip-caption: 💡
 :note-caption: ℹ️
 :important-caption: ⚠️
@@ -24,7 +25,21 @@ For example,
 +
 [source,python]
 ----
-sudoku = Grid([ [ set(range(1,10)) for x in range(0, 9) ] for y in range(0, 9) ])
+def create_grid():
+  def create_square():
+    return set(range(1, 10))
+  def create_row():
+    row = []
+    for i in range(10):
+      row.append(create_square())
+    return row
+
+  grid = []
+  for i in range(10):
+    grid.append(create_row())
+  return grid
+
+sudoku = create_grid()
 ----
 * If you fill in some number N in a square, remove this N as candidate from all squares in the same row, column and 3&times;3 block.
 +
@@ -60,12 +75,15 @@ def fill_in_ninth(grid):
       if len(square) > 1:
         more_than_one.append(position)
       else:
-        only_one.append(position
+        only_one.append(position)
     if len(more_than_one) == 1:
       position = more_than_one[0]
-      missing_number = sum(range(1,10)) - sum(list(grid[p])[0] for p in only_one)
+      used_numbers = set()
+      for p in only_one:
+        used_numbers = used_numbers.union(grid[p])
+      missing_number = list(set(range(1,10)) - used_numbers)[0]
       set_square_value(grid, position, missing_number)
-  for squares in rows(grid) + columns(grid) + blocks(grid):
+  for squares in set(rows(grid) + columns(grid) + blocks(grid)):
     helper(squares)
 ----
 * If within a row, two squares have the two same candidates left, remove those candidates from all other squares in the same row.
@@ -123,26 +141,25 @@ To solve a Sudoku puzzle, we can write:
 
 [source,prolog]
 ----
-solve([[ 5, 3, _, _, 7, _, _, _, _ ],
-       [ 6, _, _, 1, 9, 5, _, _, _ ],
-       [ _, 9, 8, _, _, _, _, 6, _ ],
-       [ 8, _, _, _, 6, _, _, _, 3 ],
-       [ 4, _, _, 8, _, 3, _, _, 1 ],
-       [ 7, _, _, _, 2, _, _, _, 6 ],
-       [ _, 6, _, _, _, _, 2, 8, _ ],
-       [ _, _, _, 4, 1, 9, _, _, 5 ],
-       [ _, _, _, _, 8, _, _, 7, 9 ]]).
+Grid = [[ 5, 3, _, _, 7, _, _, _, _ ],
+        [ 6, _, _, 1, 9, 5, _, _, _ ],
+        [ _, 9, 8, _, _, _, _, 6, _ ],
+        [ 8, _, _, _, 6, _, _, _, 3 ],
+        [ 4, _, _, 8, _, 3, _, _, 1 ],
+        [ 7, _, _, _, 2, _, _, _, 6 ],
+        [ _, 6, _, _, _, _, 2, 8, _ ],
+        [ _, _, _, 4, 1, 9, _, _, 5 ],
+        [ _, _, _, _, 8, _, _, 7, 9 ]]),
+solve(Grid).
 ----
 
 Admittedly, if you were to run this code in current Prolog implementations, you'll probably have to wait a very long time before you get your answer: the algorithm first fills all empty squares with ones and checks if all constraints are satisfied.
 If not, it removes the last 1 and replaces it by a 2 and rechecks the constraints.
 It goes on like this, trying out every possibility, until it finds one that is a valid Sudoku solution.
 
-One could reasonably say that the fact that it takes forever to generate a result makes it useless.
-This shortcoming is not inherent to Prolog itself, but to Prolog compilers/interpreters: as of yet, they are
-simply not smart enough to run it efficiently.
-However, given the fact that the Sudoku problem has been fully specified, it is theoretically possible
-to write a compiler that is able to derive a smart solving algorithm for it.
+One could reasonably say that it taking forever to generate a result makes it useless.
+This shortcoming is not inherent to Prolog itself, but to Prolog compilers/interpreters: as of yet, they are simply not smart enough to run it efficiently.
+However, since the Sudoku problem has been fully specified, it is theoretically possible to write a compiler that is able to derive a smart solving algorithm for it.
 It's just a matter of time until we get there.
 
 This idea is not that far fetched: remember that when you first encountered Sudoku puzzles, the only
@@ -150,3 +167,43 @@ information you received is the same as what is encoded in the above code.
 You were not given specific instructions of how to solve the puzzle.
 Still you were able to devise a solving algorithm on your own.
 If a human can do it, so can a machine.
+
+== Hybrid Style
+
+We can rewrite the imperative Python code shown above in a slightly more declarative way.
+
+[source,ruby]
+----
+sudoku = (1..9).map do
+           (1..9).map do
+             Set.new(1..9)
+           end
+         end.then { |squares| Grid.new squares }
+----
+
+Checking if all squares contain but one element can be implemented as
+
+[source,ruby]
+----
+def solved?(grid)
+  grid.squares.all? do |square|
+    square.size == 1
+  end
+end
+----
+
+The rule of filling in the missing number can be written as
+
+[source,ruby]
+----
+def fill_in_ninth(grid)
+  [ *grid.rows, *grid.columns, *grid.blocks ].uniq.each do |seq|
+    case seq.positions.partition { |p| grid[p].size == 1 }
+    in only_one, [ more_than_one ]
+      used_numbers = only_one.map { |p| grid[p] }.reduce(&:union)
+      missing_number = (Set.new(1..9) - used_numbers).first
+      grid[more_than_one] = [ missing_number ]
+    end
+  end
+end
+----

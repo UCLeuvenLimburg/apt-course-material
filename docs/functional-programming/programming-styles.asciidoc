@@ -1,3 +1,4 @@
+// ROOT
 :tip-caption: 💡
 :note-caption: ℹ️
 :important-caption: ⚠️
@@ -22,7 +23,7 @@ There's a lot of vagueness and hand waving involved.
 To those who find this frustrating: do not despair.
 What's important is what actual concepts you use to build up your program, not how you label the final product.
 
-There are many programming paradigms.
+There are https://en.wikipedia.org/wiki/Programming_paradigm[many programming paradigms].
 In this context, we will focus on imperative programming vs. declarative programming.
 Here's a short overview:
 
@@ -39,8 +40,9 @@ Typically, an imperative program consists of a succession of instructions that h
 Writing in assembly is probably the purest form of imperative programming.
 
 The declarative style, however, simply _describes_ the final result and prefers not preoccupy itself with how to actually find it.
+The intent is that the machine itself devises a way of how to efficiently solve the problem.
 
-To make this distinction clearer, we show how <<solving-sudokus.asciidoc,Sudoku puzzles are solved in both paradigms>>.
+To make this distinction clearer, we show how <<solving-sudokus.asciidoc#,Sudoku puzzles are solved in both paradigms>>.
 
 ## Imperative Programming
 
