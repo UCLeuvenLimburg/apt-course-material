@@ -24,8 +24,10 @@ Guess what piece of code solves which problem.
 * Find duplicates
 * Remove duplicates
 * Reverse list
+* Maximum moving average
 * Factorial
 * Permutations
+* Top 3 vote winners
 
 == Brainfuck
 
@@ -248,6 +250,35 @@ bar(Ns, Goal) :-
 
 foo(Ns, Goals) :-
     setof(Goal, bar(Ns, Goal), Goals).
+----
+
+== Ruby
+
+=== Riddle {counter:riddle}
+
+// Maximum moving average
+
+[source,ruby]
+----
+def foo(data, n)
+    data.each_cons(n)
+        .map { |ks| ks.sum / ks.size }
+        .max
+end
+----
+
+=== Riddle {counter:riddle}
+
+// Top 3 vote winners
+
+[source,ruby]
+----
+def foo(xs)
+    xs.each_with_object(Hash.new 0) { |x, h| h[x] += 1 }
+      .to_a
+      .sort_by { |x, n| n }
+      .first 3
+end
 ----
 
 == Scheme/Racket
