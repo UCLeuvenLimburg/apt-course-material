@@ -46,8 +46,10 @@ sudoku = create_grid()
 [source,python]
 ----
 def set_square_value(grid, position, number):
+  # Set square contents to just number
   grid[position].clear()
   grid[position].add(number)
+  # Remove number as candidate in other squares
   for p in in_same_group_as(position):
     grid[p] -= { number }
 ----
@@ -68,20 +70,24 @@ def is_solved(grid):
 ----
 def fill_in_ninth(grid):
   def helper(square_positions):
-    only_one = []
-    more_than_one = []
+    # Separate squares with one candidate from others
+    only_one = []      # List of squares with only one candidate
+    more_than_one = [] # List of squares with 2+ candidates
     for position in square_positions:
       square = grid
       if len(square) > 1:
         more_than_one.append(position)
       else:
         only_one.append(position)
+    # If there's only one square with 2+ candidates...
     if len(more_than_one) == 1:
       position = more_than_one[0]
+      # Find missing number
       used_numbers = set()
       for p in only_one:
         used_numbers = used_numbers.union(grid[p])
       missing_number = list(set(range(1,10)) - used_numbers)[0]
+      # Fill square with leftover number
       set_square_value(grid, position, missing_number)
   for squares in set(rows(grid) + columns(grid) + blocks(grid)):
     helper(squares)
@@ -174,6 +180,7 @@ We can rewrite the imperative Python code shown above in a slightly more declara
 
 [source,ruby]
 ----
+# Create 9 rows or 9 squares with candidates 1..9
 sudoku = (1..9).map do
            (1..9).map do
              Set.new(1..9)
@@ -186,6 +193,7 @@ Checking if all squares contain but one element can be implemented as
 [source,ruby]
 ----
 def solved?(grid)
+  # Check if all squares have only one candidate left
   grid.squares.all? do |square|
     square.size == 1
   end
@@ -197,11 +205,16 @@ The rule of filling in the missing number can be written as
 [source,ruby]
 ----
 def fill_in_ninth(grid)
+  # Repeat for all rows, columns and 3x3 blocks
   [ *grid.rows, *grid.columns, *grid.blocks ].uniq.each do |seq|
+    # Separate squares with 1 candidate from others
     case seq.positions.partition { |p| grid[p].size == 1 }
-    in only_one, [ more_than_one ]
+    in only_one, [ more_than_one ] # If there's only one square with 2+ candidates...
+      # Collect used numbers
       used_numbers = only_one.map { |p| grid[p] }.reduce(&:union)
+      # Find missing number
       missing_number = (Set.new(1..9) - used_numbers).first
+      # Set square to missing number
       grid[more_than_one] = [ missing_number ]
     end
   end
