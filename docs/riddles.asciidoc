@@ -11,11 +11,10 @@
 
 = Riddles
 
-Guess what piece of code solves which problem and which language
+Guess what piece of code solves which problem.
 
 * Addition of two numbers
 * Product of two numbers
-* Sum of N numbers
 * Maximum of N numbers
 * Hello World
 * Sorting
@@ -28,11 +27,13 @@ Guess what piece of code solves which problem and which language
 * Factorial
 * Permutations
 
-== Riddle {counter:riddle}
+== Brainfuck
+
+=== Riddle {counter:riddle}
 
 // Multiplying two numbers
 
-[source]
+[source,brainfuck]
 ----
 ,>,<
 [
@@ -43,11 +44,53 @@ Guess what piece of code solves which problem and which language
 >>.
 ----
 
-== Riddle {counter:riddle}
+== Mathematica
+
+=== Riddle {counter:riddle}
+
+// Bubble Sort
+
+[source,mathematica]
+----
+Foo[{pre___, x_, y_, post___}] := Foo[{pre, y, x, post}] /; x > y;
+Foo[xs_] := xs
+----
+
+=== Riddle {counter:riddle}
+
+// Maximum
+
+[source,mathematica]
+----
+Foo[{pre___, x_, post___}] := x /; AllTrue[{pre, post}, x >= # &]
+----
+
+=== Riddle {counter:riddle}
+
+// Find duplicate
+
+[source,mathematica]
+----
+Foo[{___, x_, ___, x_, ___}] := x
+----
+
+=== Riddle {counter:riddle}
+
+// Remove duplicates
+
+[source,mathematica]
+----
+Foo[{a___, x_, b___, x_, c___}] := Foo[{a, b, c}];
+Foo[xs_] := xs
+----
+
+== Coq
+
+=== Riddle {counter:riddle}
 
 // Maximum of list
 
-[source]
+[source,coq]
 ----
 Require Import List.
 Require Import Peano_dec.
@@ -85,48 +128,73 @@ Definition ??? (ns : list nat) (H : ~ ns = nil) : { max : nat | In max ns /\ for
 Qed.
 ----
 
-== Riddle {counter:riddle}
+== Lambda Calculus
+
+=== Riddle {counter:riddle}
+
+// Add 1 and 2
+
+[source,lambda calculus]
+----
+(λa. λb. λf. λx. a f (b f x)) (λs. λz. s z) (λs. λz. s (s z))
+----
+
+== Factor
+
+=== Riddle {counter:riddle}
+
+// Absolute value
+
+[source,factor]
+----
+: foo ( n -- n ) dup 0 < [ neg ] [ ] if ;
+----
+
+=== Riddle {counter:riddle}
 
 // Fibonacci
 
-[source]
+[source,factor]
+----
+: foo ( n -- n ) dup 1 <= [ ] [ 1 - dup 1 - foo swap foo + ] if ;
+----
+
+== Haskell
+
+=== Riddle {counter:riddle}
+
+// Factorial
+
+[source,haskell]
+----
+foo n = foldl (*) 1 [2..n]
+----
+
+=== Riddle {counter:riddle}
+
+// Fibonacci
+
+[source,haskell]
 ----
 foo = 0 : 1 : zipWith (+) foo (tail foo)
 ----
 
-== Riddle {counter:riddle}
+=== Riddle {counter:riddle}
 
-// Bubble Sort
+// Prime numbers
 
-[source]
+[source,haskell]
 ----
-Foo[{pre___, x_, y_, post___}] := Foo[{pre, y, x, post}] /; x > y;
-Foo[xs_] := xs
-----
-
-== Riddle {counter:riddle}
-
-// Maximum
-
-[source]
-----
-Foo[{pre___, x_, post___}] := x /; AllTrue[{pre, post}, x >= # &]
+foo = aux [2..]
+  where
+    aux (n:ns) = n : aux (filter ((/= 0) . (`rem` n)) ns)
 ----
 
-== Riddle {counter:riddle}
-
-// Add 1 and 2
-
-[source]
-----
-(&lambda;a. &lambda;b. &lambda;f. &lambda;x. a f (b f x)) (&lambda;s. &lambda;z. s z) (&lambda;s. &lambda;z. s (s z))
-----
-
-== Riddle {counter:riddle}
+=== Riddle {counter:riddle}
 
 // Sorting
 
-[source]
+[source,haskell]
 ----
 sort []     = []
 sort [x]    = [x]
@@ -136,11 +204,23 @@ sort (x:xs) = sort left ++ [x] ++ sort right
     right = filter (> x) xs
 ----
 
-== Riddle {counter:riddle}
+== Prolog
+
+=== Riddle {counter:riddle}
+
+// Find duplicates
+
+[source,prolog]
+----
+foo([X|Xs], X) :- member(X, Xs).
+foo([_|Xs], X) :- foo(Xs, X).
+----
+
+=== Riddle {counter:riddle}
 
 // Permutations
 
-[source]
+[source,prolog]
 ----
 foo([], []).
 foo(Xs, [X|Ys]) :-
@@ -148,107 +228,11 @@ foo(Xs, [X|Ys]) :-
     foo(Rest, Ys).
 ----
 
-== Riddle {counter:riddle}
-
-// Sum of list of numbers
-
-[source]
-----
-,
-[
-    [->+<]
-    ,
-]
->.
-----
-
-== Riddle {counter:riddle}
-
-// Absolute value
-
-[source]
-----
-: foo ( n -- n ) dup 0 < [ neg ] [ ] if ;
-----
-
-== Riddle {counter:riddle}
-
-// Prime numbers
-
-[source]
-----
-foo = aux [2..]
-  where
-    aux (n:ns) = n : aux (filter ((/= 0) . (`rem` n)) ns)
-----
-
-== Riddle {counter:riddle}
-
-// Remove duplicates
-
-[source]
-----
-Foo[{a___, x_, b___, x_, c___}] := Foo[{a, b, c}];
-Foo[xs_] := xs
-----
-
-== Riddle {counter:riddle}
-
-// Find duplicates
-
-[source]
-----
-foo([X|Xs], X) :- member(X, Xs).
-foo([_|Xs], X) :- foo(Xs, X).
-----
-
-== Riddle {counter:riddle}
-
-// Reverse
-
-[source]
-----
-(define (foo xs)
-  (define (aux xs acc)
-    (if (empty? xs)
-        acc
-        (aux (cdr xs)
-             (cons (car xs) acc))))
-  (aux xs '()))
-----
-
-== Riddle {counter:riddle}
-
-// Fibonacci
-
-[source]
-----
-: foo ( n -- n ) dup 1 <= [ ] [ 1 - dup 1 - foo swap foo + ] if ;
-----
-
-== Riddle {counter:riddle}
-
-// Factorial
-
-[source]
-----
-foo n = foldl (*) 1 [2..n]
-----
-
-== Riddle {counter:riddle}
-
-// Find duplicate
-
-[source]
-----
-Foo[{___, x_, ___, x_, ___}] := x
-----
-
-== Riddle {counter:riddle}
+=== Riddle {counter:riddle}
 
 // Numbers that can be made using + - * /
 
-[source]
+[source,prolog]
 ----
 qux(X, Y, R) :- R is X + Y.
 qux(X, Y, R) :- X > Y, R is X - Y.
@@ -266,7 +250,26 @@ foo(Ns, Goals) :-
     setof(Goal, bar(Ns, Goal), Goals).
 ----
 
-== Riddle {counter:riddle}
+== Scheme/Racket
+
+=== Riddle {counter:riddle}
+
+// Reverse
+
+[source,racket]
+----
+(define (foo xs)
+  (define (aux xs acc)
+    (if (empty? xs)
+        acc
+        (aux (cdr xs)
+             (cons (car xs) acc))))
+  (aux xs '()))
+----
+
+== Mystery Language
+
+=== Riddle {counter:riddle}
 
 // Hello World
 
