@@ -29,6 +29,10 @@
 *** MapReduce
 *** Reduce: essentially state threading
 *** Map, filter, find, count, max_by, ...
+** Data Structures
+*** Sharing
+*** Linked lists
+*** Trees
 * Concurrent Programming
 ** Concurrent vs Parallel
 ** Semaphores, locks, monitors, ...
