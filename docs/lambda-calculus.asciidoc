@@ -142,7 +142,7 @@ You might wonder what use such a language can be.
 It's just functions that call other functions receiving functions as arguments and returning functions as result.
 How could this be useful?
 
-Well, if you look at an actual computer, it's not much different: it's all just zeros and ones.
+Well, if you look at an actual computer, it's not much different: it's all just ones and zeros.
 But these bits are used to represent numbers, colors, sounds, etc.
 The same is true for functions: they can also be used to represent numbers and operations on numbers, etc.
 
