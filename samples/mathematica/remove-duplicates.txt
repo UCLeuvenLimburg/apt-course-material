@@ -1,0 +1,2 @@
+RemoveDuplicates[{a___, x_, b___, x_, c___}] := RemoveDuplicates[{a, b, c}];
+RemoveDuplicates[xs_] := xs
