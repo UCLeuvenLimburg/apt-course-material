@@ -11,16 +11,28 @@
 
 = Riddles
 
+Guess what piece of code solves which problem and which language
+
+* Addition of two numbers
+* Product of two numbers
+* Sum of N numbers
+* Maximum of N numbers
+* Hello World
+* Sorting
+* Fibonacci
+* Numbers that can be reached using arithmetic operations
+* Prime Numbers
+* Find duplicates
+* Remove duplicates
+* Reverse list
+* Factorial
+* Permutations
+
 == Riddle {counter:riddle}
 
-[source,brainfuck]
-----
-,>,<[->+<]>.
-----
+// Multiplying two numbers
 
-== Riddle {counter:riddle}
-
-[source,brainfuck]
+[source]
 ----
 ,>,<
 [
@@ -33,19 +45,9 @@
 
 == Riddle {counter:riddle}
 
-[source,brainfuck]
-----
-,
-[
-    [->+<]
-    ,
-]
->.
-----
+// Maximum of list
 
-== Riddle {counter:riddle}
-
-[source,coq]
+[source]
 ----
 Require Import List.
 Require Import Peano_dec.
@@ -85,27 +87,18 @@ Qed.
 
 == Riddle {counter:riddle}
 
-[source,haskell]
+// Fibonacci
+
+[source]
 ----
 foo = 0 : 1 : zipWith (+) foo (tail foo)
 ----
 
 == Riddle {counter:riddle}
 
-[source,haskell]
-----
-n `divisibleBy` k = n `rem` k == 0
+// Bubble Sort
 
-reject predicate = filter (not . predicate)
-
-foo = aux [2..]
-  where
-    aux (n:ns) = n : aux (reject (`divisibleBy` n) ns)
-----
-
-== Riddle {counter:riddle}
-
-[source,mathematica]
+[source]
 ----
 Foo[{pre___, x_, y_, post___}] := Foo[{pre, y, x, post}] /; x > y;
 Foo[xs_] := xs
@@ -113,32 +106,41 @@ Foo[xs_] := xs
 
 == Riddle {counter:riddle}
 
-[source,mathematica]
+// Maximum
+
+[source]
 ----
 Foo[{pre___, x_, post___}] := x /; AllTrue[{pre, post}, x >= # &]
 ----
 
 == Riddle {counter:riddle}
 
-[source,mathematica]
-----
-Foo[{x_, xs___}, {pre___, {x_, n_}, post___}] := Foo[{xs}, {pre, {x, n + 1}, post}];
-Foo[{x_, xs___}, {acc___}] := Foo[{xs}, {acc, {x, 1}}];
-Foo[{}, acc_] := acc;
-Foo[xs_] := Foo[xs, {}]
-----
+// Add 1 and 2
 
-== Riddle {counter:riddle}
-
-[source,prolog]
+[source]
 ----
-foo([X|Xs], X) :- member(X, Xs).
-foo([_|Xs], X) :- foo(Xs, X).
+(&lambda;a. &lambda;b. &lambda;f. &lambda;x. a f (b f x)) (&lambda;s. &lambda;z. s z) (&lambda;s. &lambda;z. s (s z))
 ----
 
 == Riddle {counter:riddle}
 
-[source,prolog]
+// Sorting
+
+[source]
+----
+sort []     = []
+sort [x]    = [x]
+sort (x:xs) = sort left ++ [x] ++ sort right
+  where
+    left  = filter (<= x) xs
+    right = filter (> x) xs
+----
+
+== Riddle {counter:riddle}
+
+// Permutations
+
+[source]
 ----
 foo([], []).
 foo(Xs, [X|Ys]) :-
@@ -148,29 +150,125 @@ foo(Xs, [X|Ys]) :-
 
 == Riddle {counter:riddle}
 
-[source,prolog]
+// Sum of list of numbers
+
+[source]
 ----
-solve(Ns, Goal) :- member(Goal, Ns).
-solve(Ns, Goal) :-
+,
+[
+    [->+<]
+    ,
+]
+>.
+----
+
+== Riddle {counter:riddle}
+
+// Absolute value
+
+[source]
+----
+: foo ( n -- n ) dup 0 < [ neg ] [ ] if ;
+----
+
+== Riddle {counter:riddle}
+
+// Prime numbers
+
+[source]
+----
+foo = aux [2..]
+  where
+    aux (n:ns) = n : aux (filter ((/= 0) . (`rem` n)) ns)
+----
+
+== Riddle {counter:riddle}
+
+// Remove duplicates
+
+[source]
+----
+Foo[{a___, x_, b___, x_, c___}] := Foo[{a, b, c}];
+Foo[xs_] := xs
+----
+
+== Riddle {counter:riddle}
+
+// Find duplicates
+
+[source]
+----
+foo([X|Xs], X) :- member(X, Xs).
+foo([_|Xs], X) :- foo(Xs, X).
+----
+
+== Riddle {counter:riddle}
+
+// Reverse
+
+[source]
+----
+(define (foo xs)
+  (define (aux xs acc)
+    (if (empty? xs)
+        acc
+        (aux (cdr xs)
+             (cons (car xs) acc))))
+  (aux xs '()))
+----
+
+== Riddle {counter:riddle}
+
+// Fibonacci
+
+[source]
+----
+: foo ( n -- n ) dup 1 <= [ ] [ 1 - dup 1 - foo swap foo + ] if ;
+----
+
+== Riddle {counter:riddle}
+
+// Factorial
+
+[source]
+----
+foo n = foldl (*) 1 [2..n]
+----
+
+== Riddle {counter:riddle}
+
+// Find duplicate
+
+[source]
+----
+Foo[{___, x_, ___, x_, ___}] := x
+----
+
+== Riddle {counter:riddle}
+
+// Numbers that can be made using + - * /
+
+[source]
+----
+qux(X, Y, R) :- R is X + Y.
+qux(X, Y, R) :- X > Y, R is X - Y.
+qux(X, Y, R) :- X =\= 0, Y =\= 0, R is X * Y.
+qux(X, Y, R) :- Y =\= 0, 0 is mod(X, Y), R is div(X, Y).
+
+bar(Ns, Goal) :- member(Goal, Ns).
+bar(Ns, Goal) :-
     select(X, Ns, R),
     select(Y, R, R2),
-    (
-    	Z is X + Y
-    ;   Z is X - Y
-    ;   Z is X * Y
-    ;   Y =\= 0, 0 is mod(X, Y), Z is div(X, Y)
-    ),
-    solve([Z|R2], Goal).
+    qux(X, Y, Z),
+    bar([Z|R2], Goal).
+
+foo(Ns, Goals) :-
+    setof(Goal, bar(Ns, Goal), Goals).
 ----
 
 == Riddle {counter:riddle}
 
-[source,factor]
-----
-: foo ( string -- ? ) dup reverse = ;
-----
-
-== Riddle {counter:riddle}
+// Hello World
 
 [source]
 ----
