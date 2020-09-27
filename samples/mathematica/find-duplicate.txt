@@ -1,0 +1,1 @@
+FindDuplicate[{___, x_, ___, x_, ___}] := x
