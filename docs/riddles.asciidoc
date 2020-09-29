@@ -16,11 +16,12 @@ Guess what piece of code solves which problem.
 * Addition of two numbers
 * Product of two numbers
 * Maximum of N numbers
-* Hello World
+* Hello world
+* Counting down from 10
 * Sorting
 * Fibonacci
 * Numbers that can be reached using arithmetic operations
-* Prime Numbers
+* Prime numbers
 * Find duplicates
 * Remove duplicates
 * Reverse list
@@ -206,6 +207,21 @@ sort (x:xs) = sort left ++ [x] ++ sort right
     right = filter (> x) xs
 ----
 
+== Common Lisp
+
+=== Riddle {counter:riddle}
+
+// Prime numbers
+
+[source,prolog]
+----
+(format T "~{~A~^, ~}~%"
+        (loop for i from 2 to 100
+              if (loop for j from 2 to (- i 1)
+                       never (= 0 (rem i j)))
+              collect i))
+----
+
 == Prolog
 
 === Riddle {counter:riddle}
@@ -296,6 +312,20 @@ end
         (aux (cdr xs)
              (cons (car xs) acc))))
   (aux xs '()))
+----
+
+=== Riddle {counter:riddle}
+
+// Time travelling countdown
+
+[source,racket]
+----
+(let ((foo (call/cc (lambda (c) (c (cons 10 c))))))
+  (display (car foo))
+  (newline)
+  (if (> (car foo) 0)
+      ((cdr foo) (cons (- (car foo) 1) (cdr foo)))
+      '()))
 ----
 
 == Mystery Language
