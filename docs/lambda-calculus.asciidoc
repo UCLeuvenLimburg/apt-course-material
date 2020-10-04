@@ -66,7 +66,7 @@ A function (also called an _abstraction_) looks like this:
 
 The same could be written in other languages:
 
-[.center,%header,cols="^,^4",width="50%"]
+[.center,options="header",cols="^,^4",width="50%"]
 |===
 | Language | Syntax
 | JavaScript | `function (x) { body }` or `x =&gt; body`
@@ -84,7 +84,7 @@ f x
 Here, f is the function and x is the argument.
 Many other languages use parentheses to call a function, but the lambda calculus does not require them.
 
-[.center,%header,cols="^,^4",width="50%"]
+[.center,options="header",cols="^,^4",width="50%"]
 |===
 | Language | Syntax
 | JavaScript | `f(x)`
