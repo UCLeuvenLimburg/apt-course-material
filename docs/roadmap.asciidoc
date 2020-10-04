@@ -20,6 +20,7 @@
 *** Problems with multithreading
 ** Stateless
 *** Safer (no sharing state accidentally)
+*** Keys in hash tables
 *** Remove time aspect
 *** Simplifies multithreading
 *** Allows for laziness
