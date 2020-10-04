@@ -143,7 +143,7 @@ Fraction p = a * b;
 ----
 
 The goal is to provide better abstraction.
-Whereas data is public by default in procedural programming, object oriented programming expects us to hide data within objects. 
+Whereas data is public by default in procedural programming, object oriented programming expects us to hide data within objects.
 Access to this data must be mediated by the object's functions, often called methods in the OO world.
 
 Since you should already be quite at ease with OO-programming, we need not delve into this particular programming style.
@@ -167,7 +167,7 @@ A <<logic-programming.md,short explanation>> is included in a separate file for 
 
 We could say that functional programming consists of organizing your code as a bunch of functions, but that wouldn't be very helpful, since it is not clear how it would differ from procedural programming.
 
-Since our goal is to examine functional programming in depth and this text has grown large already, we continue on a <<functional-programming.md,fresh page>>.
+Since our goal is to examine functional programming in depth and this text has grown large already, we continue on a <<functional-programming/overview.asciidoc#,fresh page>>.
 
 === Reactive Programming
 

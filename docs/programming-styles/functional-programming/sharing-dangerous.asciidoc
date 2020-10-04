@@ -1,0 +1,244 @@
+// ROOT
+:tip-caption: 💡
+:note-caption: ℹ️
+:important-caption: ⚠️
+:task-caption: 👨‍🔧
+:source-highlighter: rouge
+:toc: left
+:toclevels: 3
+:experimental:
+:nofooter:
+:stem:
+
+= The Dangers of Sharing
+
+In this section, we examine the consequences of returning mutable objects.
+
+== Strings
+
+The great majority of programming languages come with direct support for strings.
+Which operations are available on them depends on the language.
+We can divide up these operations into two categories:
+
+* Operations that don't alter the string.
+* Operations that alter the string.
+
+What's interesting to us is the fact that many languages leave out all the string-modifying operations.
+In other words, strings are *immutable* in these languages.
+
+[.center,options="header",cols="^,^",width="50%"]
+|===
+| Mutable Strings | Immutable Strings
+| C++ | Java
+| PHP | C#
+| Ruby | Ruby 3
+| Racket | JavaScript
+| Swift | Python
+| O'Caml | Go
+| | Kotlin
+|===
+
+You might wonder why strings have been made stateless in so many languages.
+Clearly creating new strings consumes way more memory.
+A stateful implementation would be much more memory efficient... right?
+
+Let's see what happens if we ``String``s were mutable by pretending we have a `void set(String newValue)` method that overwrites the `String` object with a new value.
+
+=== First Version
+
+Consider the following Java code:
+
+[source,java]
+----
+class Person
+{
+    private String name;
+
+    public Person(String name)
+    {
+        setName(name);
+    }
+
+    public String getName()
+    {
+        return name;
+    }
+
+    public void setName(String name)
+    {
+        if ( name == null || this.name.length == 0 )
+        {
+            throw new IllegalArgumentException();
+        }
+
+        this.name = name;
+    }
+}
+----
+
+A `Person` has a `name` which must not be empty, as enforced by `setName`.
+It is therefore ``Person``'s responsibility to "protect" `name` to ensure it stays valid.
+
+Now let's have some fun with our new-found ``set``ing powers.
+
+[source,java]
+----
+Person person = new Person("Sophie");
+person.getName().set("");
+----
+
+Due to `getName()` giving the caller direct access to the ``Person``'s `name`, he would be able to change it, `Person` being none the wiser.
+
+=== Fixing the Code
+
+We can prevent this kind of stealthy modifications by returning a copy:
+
+[source,diff]
+----
+  class Person
+  {
+      private String name;
+
+      public Person(String name)
+      {
+          setName(name);
+      }
+
+      public String getName()
+      {
+-         return name;
++         return new String(name); // Makes a copy
+      }
+
+      public void setName(String name)
+      {
+          if ( name == null || this.name.length == 0 )
+          {
+              throw new IllegalArgumentException();
+          }
+
+          this.name = name;
+      }
+  }
+----
+
+This, however, is not enough to keep the ``Person``'s `name` safe:
+
+[source,java]
+----
+String name = "Kevin";
+Person person = new Person(name);
+name.set("");
+----
+
+We need to make some more copies:
+
+[source,diff]
+----
+  class Person
+  {
+      private String name;
+
+      public Person(String name)
+      {
+          setName(name);
+      }
+
+      public String getName()
+      {
+          return new String(name);
+      }
+
+      public void setName(String name)
+      {
+          if ( name == null || this.name.length == 0 )
+          {
+              throw new IllegalArgumentException();
+          }
+
+-         this.name = name;
++         this.name = new String(name);
+      }
+  }
+----
+
+It might seem that the original version (without copies) would work just fine: simply remember that the returned `String` should not be changed.
+However, this is a naive mindset.
+We can assure you it's all too easy to accidentally make a mistake.
+Before you know it, you pass the `String` around and two unrelated parts of your codebase end up sharing the same object.
+As soon as one part modifies this object, it could make the other part misbehave.
+This kind of bug is infuriatingly hard to find.
+
+[TIP]
+====
+For this reason, debuggers often allow you to tag objects with an "identity", so that you can see if the same object appears at multiple locations.
+For example,
+
+* https://blogs.msdn.microsoft.com/zainnab/2010/03/04/make-object-id/[Visual Studio]
+* https://www.youtube.com/watch?v=ZyBWx38lds4[IntelliJ]
+====
+
+=== Breaking the Fixed Code
+
+Now that we've rewritten `Person` so as to make copies of `name` everywhere, surely there is no way to surreptitiously change the `Person`'s name to an invalid value?
+Sorry to disappoint you...
+
+[source,java]
+----
+String name = "Martin";
+new Thread(() -> { name.clear() }).start();
+Person person = new Person(name);
+----
+
+If the timing is exactly right, it is possible that `name` is cleared between the moment it is checked and the moment it is copied.
+Run the code in `samples/java/person-race-condition` to see it in action.
+
+=== Fixing the Fix
+
+We can fix this as follows:
+
+[source,diff]
+----
+  // Java
+  class Person
+  {
+      private String name;
+
+      public Person(String name)
+      {
+          setName(name);
+      }
+
+      public String getName()
+      {
+          return name.copy();
+      }
+
+      public void setName(String name)
+      {
++         name = name.copy();
+
+          if ( name == null || this.name.length == 0 )
+          {
+              throw new IllegalArgumentException();
+          }
+
+-         this.name = name.copy();
++         this.name = name;
+      }
+  }
+----
+
+You might think this is a bit far fetched and that the user is clearly asking for trouble by using threads like this.
+Keep in mind though that in some situations, `Person` could be a security sensitive class and that the user could be maliciously attempting to subvert the system's integrity.
+
+TODO: Collections
+TODO: Integers also immutable
+
+== Conclusion
+
+The above examples should convince you (at least a little bit) that immutable objects can simplify your life:
+
+* You do not need to make sure you copy them everywhere at the right times, lest you want hard to track bugs to pop up.
+* In this example, immutable objects lead to more efficient code, since instead of having to copy them out of safety concerns, it is safe to reuse them.
+* The straightforward/naive implementation in an imperative setting is dangerous, whereas the functional approach does not require extra thought to be safe.

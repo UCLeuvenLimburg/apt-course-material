@@ -1,0 +1,24 @@
+// ROOT
+:tip-caption: 💡
+:note-caption: ℹ️
+:important-caption: ⚠️
+:task-caption: 👨‍🔧
+:source-highlighter: rouge
+:toc: left
+:toclevels: 3
+:experimental:
+:nofooter:
+:stem:
+
+= Functional Programming
+
+[IMPORTANT]
+====
+First of all, let me stress that I won't pretend functional programming is the ultimate panacea, the One True Way, the way _real_ programmers do it.
+Like everything in life, it has both advantages and disadvantages.
+Good programming consists of being able to apply the right concept in the right places, so as to both maximize the benefits and minimize the downsides of each approach.
+====
+
+* <<definition.asciidoc#,What is functional programming?>>
+* Why functional programming?
+** <<sharing-dangerous.asciidoc#,The Dangers of Sharing>>
