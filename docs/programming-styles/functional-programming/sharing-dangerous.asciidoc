@@ -12,7 +12,7 @@
 
 = The Dangers of Sharing
 
-In this section, we examine the consequences of returning mutable objects.
+In this section, we examine what might happen if you return mutable field values.
 
 == Strings
 
@@ -180,7 +180,7 @@ For example,
 
 === Breaking the Fixed Code
 
-Now that we've rewritten `Person` so as to make copies of `name` everywhere, surely there is no way to surreptitiously change the `Person`'s name to an invalid value?
+Now that we've rewritten `Person` so as to make copies of `name` everywhere, surely there is no way to clandestinely change the ``Person``'s name to an invalid value?
 Sorry to disappoint you...
 
 [source,java]
@@ -211,19 +211,19 @@ We can fix this as follows:
 
       public String getName()
       {
-          return name.copy();
+          return new String(name);
       }
 
       public void setName(String name)
       {
-+         name = name.copy();
++         name = new String(name);
 
           if ( name == null || this.name.length == 0 )
           {
               throw new IllegalArgumentException();
           }
 
--         this.name = name.copy();
+-         this.name = new String(name);
 +         this.name = name;
       }
   }
@@ -232,8 +232,118 @@ We can fix this as follows:
 You might think this is a bit far fetched and that the user is clearly asking for trouble by using threads like this.
 Keep in mind though that in some situations, `Person` could be a security sensitive class and that the user could be maliciously attempting to subvert the system's integrity.
 
-TODO: Collections
 TODO: Integers also immutable
+
+== Collections
+
+Consider the following C# class:
+
+[source,csharp]
+----
+class Averager
+{
+    private readonly List<int> values;
+
+    private int sum;
+
+    public Averager()
+    {
+        this.values = new List<int>();
+        this.sum = 0;
+    }
+
+    public List<int> Values => values;
+
+    public int Average => ((double) sum) / values.Count;
+
+    public void Add(int number)
+    {
+        this.values.Add(number);
+        this.sum += number;
+    }
+}
+----
+
+``Averager``'s purpose is to efficiently keep track of a list of numbers and their average.
+What is important for our discussion is that there is a dependency between its fields `values` and `sum`: `sum` must at all times be equal to the sum of the numbers in `values`.
+Normally we would avoid such redundancy, but we might do it for efficiency reasons, or simply for the sake of having an example to work on.
+
+This class has the same weakness as `Person` above: it returns its list directory.
+Nothing prevents us from breaking it:
+
+[source,csharp]
+----
+var averager = new Averager();
+averager.Values.Add(10);
+var average = avg.Average; // Returns 0 instead of 10
+----
+
+We could again make a copy to prevent this issue:
+
+[source,diff]
+----
+  class Averager
+  {
+      private readonly List<int> values;
+
+      private int sum;
+
+      public Averager()
+      {
+          this.values = new List<int>();
+          this.sum = 0;
+      }
+
+-     public List<int> Values => values;
++     public List<int> Values => new List<int>(values);
+
+      public int Average => ((double) sum) / values.Count;
+
+      public void Add(int number)
+      {
+          this.values.Add(number);
+          this.sum += number;
+      }
+  }
+----
+
+Copying protects the `Averager` objects, but at what cost?
+Having to copy a potentially long list of values is both time and memory consuming.
+
+=== An Immutable `Averager`
+
+We could rely on the same solution as for strings: we make `List` immutable.
+This means that the ``List``'s '``Add` method needs to return a new `List` instead of modifying the current one.
+
+[source,csharp]
+----
+class Averager
+{
+    private List<int> values;
+
+    private int sum;
+
+    public Averager()
+    {
+        this.values = new List<int>();
+        this.sum = 0;
+    }
+
+    public List<int> Values => values;
+
+    public int Average => ((double) sum) / values.Count;
+
+    public void Add(int number)
+    {
+        // We pretend that Add returns a new list and leaves the original one unmodified
+        this.values = this.values.Add(number);
+        this.sum += number;
+    }
+}
+----
+
+This simply moves the problem elsewhere: instead of having a potentially inefficient `Values` property, it is now the `Add` method that could be slow.
+Luckily, there are data structures that allow for an efficient implementation.
 
 == Conclusion
 
