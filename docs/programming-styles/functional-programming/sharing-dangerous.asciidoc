@@ -344,6 +344,45 @@ class Averager
 
 This simply moves the problem elsewhere: instead of having a potentially inefficient `Values` property, it is now the `Add` method that could be slow.
 Luckily, there are data structures that allow for an efficient implementation.
+We will further discuss this in <<persistent-data-structures.asciidoc#,the section about persistent data structures>>.
+
+=== A Read-Only View
+
+We have considered two possible solutions:
+
+* Keep the list mutable but make copies
+* Make the list immutable
+
+There exists a solution in between those extremes: we could simply return a readonly view of the list:
+
+[source,csharp]
+----
+class Averager
+{
+    private List<int> values;
+
+    private int sum;
+
+    public Averager()
+    {
+        this.values = new List<int>();
+        this.sum = 0;
+    }
+
+    public IList<int> Values => values.AsReadOnly();
+
+    public int Average => ((double) sum) / values.Count;
+
+    public void Add(int number)
+    {
+        // We pretend that Add returns a new list and leaves the original one unmodified
+        this.values = this.values.Add(number);
+        this.sum += number;
+    }
+}
+----
+
+image::readonly-wrapper.svg[Static,600,align="center"]
 
 == Conclusion
 
