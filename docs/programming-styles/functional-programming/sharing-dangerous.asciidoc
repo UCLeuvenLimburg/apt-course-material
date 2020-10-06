@@ -232,7 +232,21 @@ We can fix this as follows:
 You might think this is a bit far fetched and that the user is clearly asking for trouble by using threads like this.
 Keep in mind though that in some situations, `Person` could be a security sensitive class and that the user could be maliciously attempting to subvert the system's integrity.
 
-TODO: Integers also immutable
+== Primitive Types
+
+Note that all primitive types are actually also immutable.
+
+[source,csharp]
+----
+int x = 5;
+++x;
+----
+
+You might think that clearly `x` has changed value.
+Indeed, the _variable_ `x` now contains a different value, namely `6`.
+However, it is not the `5` itself that has been increment to `6`, it is only the contents of the variable that has changed.
+If it were `5` that was actually modified, all instances of `5` across the program would now be equal to `6`.
+So, when incrementing an integer variable, you are merely making it "point" to a different integer, not modifying the integer itself.
 
 == Collections
 
@@ -382,7 +396,28 @@ class Averager
 }
 ----
 
+The `AsReadonly()` method creates a wrapper around the original list.
+This object implements the same interface as `List`, namely `IList`, but blocks all mutating operations.
+
 image::readonly-wrapper.svg[Static,600,align="center"]
+
+This approach has as advantage that it allows to track changes.
+
+[source,csharp]
+----
+var averager = new Averager();
+averager.Add(1);
+averager.Add(2);
+averager.Add(3);
+var list = averager.Values;
+averager.Add(4);
+----
+
+* With the copying approach, `list` will still contain `1`, `2`, `3` at the end.
+* The same is true when working with immutable lists.
+* With the readonly view, `list` "sees" the addition of the fourth element.
+
+Which approach is best depends on your needs.
 
 == Conclusion
 
