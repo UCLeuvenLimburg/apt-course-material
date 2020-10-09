@@ -46,3 +46,5 @@
 * Expression problem
 * Reactive programming
 ** Fakes an up to date equality (e.g. := in Mathematica)
+* Inheritance vs composition
+** Static vs dynamic
