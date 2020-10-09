@@ -30,12 +30,12 @@ def create_grid():
     return set(range(1, 10))
   def create_row():
     row = []
-    for i in range(10):
+    for i in range(9):
       row.append(create_square())
     return row
 
   grid = []
-  for i in range(10):
+  for i in range(9):
     grid.append(create_row())
   return grid
 
