@@ -10,11 +10,18 @@
 :nofooter:
 :stem:
 
-= The Dangers of Sharing
+= The Dangers of State
+
+State allows things to be changed.
+Some may find that automatically allowing change is more flexible.
+However, there are risks associated with this.
+In this section, we give a few examples where state actually complicates things.
+
+== Breaking the Abstraction
 
 In this section, we examine what might happen if you return mutable field values.
 
-== Strings
+=== Strings
 
 The great majority of programming languages come with direct support for strings.
 Which operations are available on them depends on the language.
@@ -44,7 +51,7 @@ A stateful implementation would be much more memory efficient... right?
 
 Let's see what happens if we ``String``s were mutable by pretending we have a `void set(String newValue)` method that overwrites the `String` object with a new value.
 
-=== First Version
+==== First Version
 
 Consider the following Java code:
 
@@ -89,7 +96,7 @@ person.getName().set("");
 
 Due to `getName()` giving the caller direct access to the ``Person``'s `name`, he would be able to change it, `Person` being none the wiser.
 
-=== Fixing the Code
+==== Fixing the Code
 
 We can prevent this kind of stealthy modifications by returning a copy:
 
@@ -178,7 +185,7 @@ For example,
 * https://www.youtube.com/watch?v=ZyBWx38lds4[IntelliJ]
 ====
 
-=== Breaking the Fixed Code
+==== Breaking the Fixed Code
 
 Now that we've rewritten `Person` so as to make copies of `name` everywhere, surely there is no way to clandestinely change the ``Person``'s name to an invalid value?
 Sorry to disappoint you...
@@ -193,7 +200,7 @@ Person person = new Person(name);
 If the timing is exactly right, it is possible that `name` is cleared between the moment it is checked and the moment it is copied.
 Run the code in `samples/java/person-race-condition` to see it in action.
 
-=== Fixing the Fix
+==== Fixing the Fix
 
 We can fix this as follows:
 
@@ -232,7 +239,7 @@ We can fix this as follows:
 You might think this is a bit far fetched and that the user is clearly asking for trouble by using threads like this.
 Keep in mind though that in some situations, `Person` could be a security sensitive class and that the user could be maliciously attempting to subvert the system's integrity.
 
-== Primitive Types
+=== Primitive Types
 
 Note that all primitive types are actually also immutable.
 
@@ -248,7 +255,7 @@ However, it is not the `5` itself that has been increment to `6`, it is only the
 If it were `5` that was actually modified, all instances of `5` across the program would now be equal to `6`.
 So, when incrementing an integer variable, you are merely making it "point" to a different integer, not modifying the integer itself.
 
-== Collections
+=== Collections
 
 Consider the following C# class:
 
@@ -324,7 +331,7 @@ We could again make a copy to prevent this issue:
 Copying protects the `Averager` objects, but at what cost?
 Having to copy a potentially long list of values is both time and memory consuming.
 
-=== An Immutable `Averager`
+==== An Immutable `Averager`
 
 We could rely on the same solution as for strings: we make `List` immutable.
 This means that the ``List``'s '``Add` method needs to return a new `List` instead of modifying the current one.
@@ -360,7 +367,7 @@ This simply moves the problem elsewhere: instead of having a potentially ineffic
 Luckily, there are data structures that allow for an efficient implementation.
 We will further discuss this in <<persistent-data-structures.asciidoc#,the section about persistent data structures>>.
 
-=== A Read-Only View
+==== A Read-Only View
 
 We have considered two possible solutions:
 
