@@ -65,3 +65,39 @@ class HashSet:
 <2> Adding an element `elt` involves first determining which bucket `elt` belongs in, then adding `elt` to this bucket.
 <3> The bucket index is determined by using ``elt``'s hash code modulo `BUCKET_COUNT`.
 <4> Looking if an element is a member of the set consists of looking up the right bucket and going through it. Since the bucket is a small list, this operation is efficient.
+
+=== Mutable Elements
+
+A problem arises when set elements are modified.
+This causes their hash code to change.
+This means that the element now resides in the wrong bucket.
+
+[source,python]
+----
+elt = create()   # <1>
+set.add(elt)     # <2>
+elt.change()     # <3>
+elt in set       # <4>
+----
+<1> `elt` is created. Let's assume `hash(elt) = 1`.
+<2> `elt` is added the the set and is placed in the second bucket.
+<3> ``elt``'s hash code changes to, say, `2`.
+<4> `set` will wrongly look for `elt` in the third bucket instead of the second.
+
+This means sets only work if you make sure the elements' hash code never changes once it's been added.
+The most straightforward way to achieve this, is to make the elements immutable.
+
+=== Python
+
+Python tries to enforce this rule as best it can: sets and dictionaries (which also rely on hash codes) only accept elements (or keys, in the case of dictionaries) that are immutable.
+For example,
+
+* Since strings and numbers are immutable, they are valid elements.
+* Lists are mutable and therefore cannot be added to sets or used as dictionary keys.
+* Tuples are in essence immutable lists. These are okay to use.
+* In a similar vein, sets in themselves are mutable, but here too Python offers an immutable alternative, namely `frozenset`.
+
+== Other Examples
+
+Data structures that organize elements according to their value will generally break if any elements they contain change.
+For example, a binary search tree will break if its elements are modified.
