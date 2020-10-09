@@ -2,7 +2,7 @@
 
 In this section, we examine what might happen if you return mutable field values.
 
-== Strings
+== Returning Strings
 
 The great majority of programming languages come with direct support for strings.
 Which operations are available on them depends on the language.
@@ -236,7 +236,7 @@ However, it is not the `5` itself that has been increment to `6`, it is only the
 If it were `5` that was actually modified, all instances of `5` across the program would now be equal to `6`.
 So, when incrementing an integer variable, you are merely making it "point" to a different integer, not modifying the integer itself.
 
-== Collections
+== Returning Collections
 
 Consider the following C# class:
 

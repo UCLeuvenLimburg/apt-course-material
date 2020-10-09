@@ -18,7 +18,7 @@ However, there are risks associated with this.
 In this section, we give a few examples where state actually complicates things.
 
 include::breaking-abstraction.asciidoc[leveloffset=1]
-
+include::collections.asciidoc[leveloffset=1]
 
 == Conclusion
 

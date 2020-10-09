@@ -1,0 +1,67 @@
+= State and Collections
+
+Many collections expect their values not to change, lest they stop working correctly.
+
+== Hash Sets
+
+A hash set is a data structure aiming to check for membership efficiently.
+We first examine a naive implementation.
+
+=== Lists
+
+Let's look at how to check for membership using ordinary lists.
+A list lets the user determine the order of the elements, so a list cannot make any assumption about where in the list elements reside.
+When checking whether some value is contained within a list, we have no other choice than to go through the entire list:
+
+[source,python]
+----
+def member(lst, elt):
+    for x in lst:
+        if x == elt:
+            return True
+    return False
+----
+
+This is acceptable for small lists, but as the lists grow longer, the time needed to find a particular increases linearly.
+Even though linear isn't bad, but it can definitely be improved upon.
+
+=== Internal Working of Hash Sets
+
+What if instead of having one large list of elements, we have many very small ones?
+Looking for an element in a small list is quite efficient.
+But that raises the question: how do we know in which small list to look for the element?
+If we have to look through every one, we might as well simply work with one large list.
+
+We solve this problem by associating an arbitrary but deterministic number to each value we might want to store in a hash set.
+This number is called the _hash code_.
+We expound this:
+
+* *Arbitrary*: the actual value does not matter, but the more random, the better.
+* *Deterministic*: equal values should yield the same hash code every time.
+
+We keep a large number of small lists and use this hash code to determine in which list an element belongs.
+These small lists are generally called _buckets_.
+
+[source,python]
+----
+class HashSet:
+    def __init__(self):
+        self.table = [ [] for _ in range(BUCKET_COUNT) ]  # <1>
+
+    def add(self, elt):
+        self.find_bucket(elt).append(elt)                 # <2>
+
+    def find_bucket(self, elt):
+        index = self.compute_bucket_index(elt)
+        return self.table[index]
+
+    def compute_bucket_index(self, elt):
+        return hash(elt) % len(self.table)                # <3>
+
+    def __contains__(self, elt):
+        return elt in self.find_bucket(elt)               # <4>
+----
+<1> `table` keeps track of the buckets (small lists). We create `BUCKET_COUNT` such buckets.
+<2> Adding an element `elt` involves first determining which bucket `elt` belongs in, then adding `elt` to this bucket.
+<3> The bucket index is determined by using ``elt``'s hash code modulo `BUCKET_COUNT`.
+<4> Looking if an element is a member of the set consists of looking up the right bucket and going through it. Since the bucket is a small list, this operation is efficient.
