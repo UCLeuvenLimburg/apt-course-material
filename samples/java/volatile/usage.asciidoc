@@ -1,0 +1,13 @@
+= Usage
+
+[source,bash]
+----
+# Compile
+$ javac *.java
+
+# Run without volatile
+$ java NonVolatile
+
+# Run with volatile
+$ java Volatile
+----
