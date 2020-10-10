@@ -5,9 +5,6 @@
 # Compile
 $ javac *.java
 
-# Run without volatile
-$ java NonVolatile
-
-# Run with volatile
+# Run (there are multiple main methods)
 $ java Volatile
 ----
