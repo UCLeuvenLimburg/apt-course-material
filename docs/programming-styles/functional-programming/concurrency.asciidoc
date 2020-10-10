@@ -129,12 +129,56 @@ Since correctness is more important than speed, it is better to err on the side 
 === Deadlocks
 
 Careless use of synchronization can lead to deadlocks.
-This situation occurs
 
+[source,python]
+----
+lock1 = Lock()
+lock2 = Lock()
 
-* Synchronization is necessary to reduce the set of possible outcomes to only one single correct outcome.
-  While it can be tempting to preventively add synchronization everywhere, it can dramatically reduce performance.
-  For example, it is possible that an overabundance of synchronization makes a multi-threaded program run more slowly than if it were single threaded.
-* One has to be wary of deadlocks which arise when threads are waiting on each other indefinitely.
-  This causes (part of) your program to get stuck forever.
-* The synchronization primitives are not easy to work with
+def f():
+    with lock1:
+        sleep(1)
+        with lock2:
+            print('f got both locks!')
+
+def g():
+    with lock2:
+        sleep(1)
+        with lock1:
+            print('g got both locks!')
+
+thread1 = Thread(target=f)
+thread2 = Thread(target=g)
+
+thread1.start()
+thread2.start()
+----
+
+Running the code above can lead to three different outcomes:
+
+* Either `thread1` can get its hands both on `lock1` and `lock2` first, in which case `f got both locks!` gets printed.
+  Subsequently, `thread2` will successfully manage to get both locks, causing `g got both locks!` to be shown.
+* The reverse order is also possible: `thread2` gets scheduled first, gets both locks, etc.
+* `thread1` gets `lock1`. While it is sleeping, `thread2` grabs `lock2`. Now both threads are waiting for locks that have been acquired by the other. Deadlock.
+
+Unfortunately, the third outcome is by far the most probable.
+
+=== Lack of Composability
+
+Say you have two classes `A` and `B`, Both of which are to be used in a multi-threaded setting.
+You add the right amount of synchronization to both and they function perfectly when tested separately.
+
+Now imagine you have to write a third class `AB` that relies on `A` and `B`.
+Since these are both synchronized correctly, you could hope that `AB` somehow inherits this property automatically.
+Unfortunately, this is not the case: `AB` needs to add extra synchronization of its own.
+Perfectly written classes `A` and `B` can still be made to misbehave if one uses them wrong.
+
+== Statelessness as a Solution
+
+In a stateless world, each variable is bound to a single value during its entire lifetime.
+State adds a time component to this: a variable's value changes over time.
+If the value of a variable matters, so does timing: a variable needs to be read at the right time, lest you end up with incorrect results.
+This sensitivity to time is problematic in the presence of the different levels of nondeterminism as laid out above.
+
+It should be clear that writing stateless code can dramatically simplify things: time has no longer an impact on the outcome.
+Statelessness removes the need for synchronization entirely.
