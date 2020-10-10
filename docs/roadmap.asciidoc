@@ -48,3 +48,8 @@
 ** Fakes an up to date equality (e.g. := in Mathematica)
 * Inheritance vs composition
 ** Static vs dynamic
+* DSL
+** Fluent code
+** Config files (e.g. groovy)
+** Ruby
+** Macros
