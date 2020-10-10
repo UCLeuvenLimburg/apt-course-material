@@ -19,11 +19,12 @@ In this section, we give a few examples where state actually complicates things.
 
 include::breaking-abstraction.asciidoc[leveloffset=1]
 include::collections.asciidoc[leveloffset=1]
+include::concurrency.asciidoc[leveloffset=1]
 
 == Conclusion
 
 The above examples should convince you (at least a little bit) that immutable objects can simplify your life:
 
 * You do not need to make sure you copy them everywhere at the right times, lest you want hard to track bugs to pop up.
-* In this example, immutable objects lead to more efficient code, since instead of having to copy them out of safety concerns, it is safe to reuse them.
-* The straightforward/naive implementation in an imperative setting is dangerous, whereas the functional approach does not require extra thought to be safe.
+* Immutable objects _can_ lead to more efficient code, e.g., no need for copying or synchronization.
+* The straightforward/naive implementation in an imperative setting is quite prone to bugs, whereas the functional approach does not require extra thought to be correct.

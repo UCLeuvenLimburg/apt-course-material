@@ -1,0 +1,140 @@
+= Concurrency
+
+If two threads have write access to the same memory location, we say they share state.
+Dealing with shared state is particularly tricky: the thread's actions have to be timed exactly, yet there are many levels of nondeterminism in play.
+
+== Out of Order Execution
+
+We start out on the lowest level: the CPU.
+A CPU receives a sequence of instructions to execute.
+However, there is no guarantee that these instructions will be executed in order.
+Indeed, the CPU can reorder the instructions to achieve higher performance.
+For example, if the execution of one instruction is delayed because it awaits its input from main memory, another subsequent instruction can be processed.
+
+Of course, this reordering does not happen recklessly: the CPU first ensures that the reordering does not impact the result.
+This means that it is impossible to observe these reorderings: everything takes place as if the original order was preserved.
+
+However, this rule is applied to a limited scope: only the current execution thread is considered.
+Other threads can "see" these changes in instruction order.
+As a consequence, when multiple threads interact with each other, one has to take into consideration that instructions on these threads will not be executed in a fixed order.
+
+It is possible to put constraints on this reordering using https://en.wikipedia.org/wiki/Memory_barrier[*memory barriers*].
+
+* A read-acquire barrier executes before all reads and writes by the same thread that follow it in program order.
+* A write-release barrier executes after all reads and writes by the same thread that precede it in program order.
+
+== Memory Models
+
+Luckily for us, a programming language can shield us from this out of order execution madness: we should be able to expect the compiler to add the necessary barrier instructions that ensure the correct execution of our code.
+However, programming languages add a new level of nondeterminism of their own: the compiler is also allowed to rearrange instructions as it sees fit.
+
+Let's define some terminology:
+
+* An *execution trace* is a description of the order in which instructions are executed.
+* A *memory model* specifies the possible execution traces for a given piece of code.
+
+https://docs.oracle.com/javase/specs/jls/se8/html/jls-17.html#jls-17.4[Java's memory model] states that the compiler is indeed allowed to transform the code for the sake of efficiency, as long as no changes can be observed from within the same thread.
+
+=== Example
+
+Consider the following program, assuming that `a` and `b` are initially both set to `0`.
+
+[.center,options="header",cols="^,^",width="40%"]
+|===
+| Thread 1 | Thread 2
+| y = a | x = b
+| b = 1 | a = 2
+|===
+
+These are possible traces if the statements are kept in order:
+
+[.center,options="header",cols="^,^,^,^,^,^",width="70%"]
+|===
+| Step 1 | Step 2 | Step 3 | Step 4 | value of `x` | value of `y`
+| y = a | b = 1 | x = b | a = 2 | 1 | 0
+| y = a | x = b | b = 1 | a = 2 | 0 | 0
+| y = a | x = b | a = 2 | b = 1 | 0 | 0
+| x = b | a = 2 | y = a | b = 1 | 0 | 2
+| x = b | y = a | a = 2 | b = 1 | 0 | 0
+| x = b | y = a | b = 1 | a = 2 | 0 | 0
+|===
+
+In other words, the possible outcomes for `x` and `y` are
+
+[.center,options="header",cols="^,^",width="40%"]
+|===
+| `x` | `y`
+| 0 | 0
+| 1 | 0
+| 0 | 2
+|===
+
+However, since the compiler is allowed to rearrange statements as long as it doesn't affect the thread when observed in isolation, the code above can be transformed to
+
+[.center,options="header",cols="^,^",width="40%"]
+|===
+| Thread 1 | Thread 2
+| b = 1 | x = b
+| y = a | a = 2
+|===
+
+[.center,options="header",cols="^,^",width="40%"]
+|===
+| Thread 1 | Thread 2
+| y = a | a = 2
+| b = 1 | x = b
+|===
+
+[.center,options="header",cols="^,^",width="40%"]
+|===
+| Thread 1 | Thread 2
+| b = 1 | a = 2
+| y = a | x = b
+|===
+
+So, according to Java's memory model, there are actually 24 possible traces instead of just 6.
+We won't bother with listing them all, but suffice it to say that it leads to an extra possible outcome:
+
+[.center,options="header",cols="^,^",width="40%"]
+|===
+| `x` | `y`
+| 0 | 0
+| 1 | 0
+| 0 | 2
+| [red]#1# | [red]#2#
+|===
+
+== Synchronization Primitives
+
+The previous subsections focused on how single operations could be reordered.
+But there is one more level on nondeterminism: threads can be scheduled at any time by the OS's scheduler.
+In other words, millions of operations at once can be moved around in time arbitrarily.
+
+To restore some order to this chaos, synchronization primitives exist such as semaphores, events, locks, monitors, etc.
+These allow us to put constraints on how code gets executed.
+There are, however, many issues to deal with.
+
+=== Performance
+
+The reason the CPU and compiler move instructions around is to make execution more efficient.
+It should come as no surprise that taking steps to prevent such reordering negatively impacts performance.
+
+Synchronization reduces the set of possible outcomes.
+The goal is to use just enough synchronization so that only correct outcomes can be produced by your program.
+Any more synchronization will slow down your program unnecessarily, sometimes even worsening performance to levels lower than if the application were written using a single thread.
+
+However, it is very hard to get this balance exactly right.
+Since correctness is more important than speed, it is better to err on the side of "oversynchronization".
+
+=== Deadlocks
+
+Careless use of synchronization can lead to deadlocks.
+This situation occurs
+
+
+* Synchronization is necessary to reduce the set of possible outcomes to only one single correct outcome.
+  While it can be tempting to preventively add synchronization everywhere, it can dramatically reduce performance.
+  For example, it is possible that an overabundance of synchronization makes a multi-threaded program run more slowly than if it were single threaded.
+* One has to be wary of deadlocks which arise when threads are waiting on each other indefinitely.
+  This causes (part of) your program to get stuck forever.
+* The synchronization primitives are not easy to work with
