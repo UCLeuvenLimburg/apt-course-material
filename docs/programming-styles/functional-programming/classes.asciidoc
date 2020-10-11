@@ -1,0 +1,75 @@
+= First, Second and Third Class Citizens
+
+[IMPORTANT]
+====
+The terms first, second and third class citizens are actually not well defined and many argue over their definitions.
+Here, we use the terminology used by Raphael Finkel's https://www.cs.uky.edu/~raphael/courses/CS655/Advanced_programming_language_design.pdf[Advanced Programming Language Design] (freely available) and Michael L. Scott's https://www.amazon.com/Programming-Language-Pragmatics-Michael-Scott-dp-813122256X/dp/813122256X/ref=mt_other[Programming Language Pragmatics].
+====
+
+Consider the code below:
+
+[source,java]
+----
+var b = true;                  // <1>
+
+boolean foo(boolean x) { ... } // <2>
+----
+<1> We store a boolean value in a variable named `b`.
+<2> `foo` is a function that both _receives_ a boolean value as argument and _returns_ one.
+
+Nothing spectacular going on.
+Here's another code fragment:
+
+[source,java]
+----
+var c = String;
+----
+
+This won't compile: in Java it is impossible to store a class (here `String`) in a variable.
+You cannot pass it along to a function either, nor return it.
+
+This limitation is not universal; many languages allow classes to be manipulated as if they were regular values:
+
+[source,ruby]
+----
+class Person
+    def initialize(name)  # <1>
+        @name = name
+    end
+
+    attr_reader :name     # <2>
+end
+
+x = Person                # <3>
+person = x.new('Jan')     # <4>
+----
+<1> Constructor
+<2> Defines getter for the `name` attribute
+<3> Store class `Person` in variable `x`
+<4> Create new `Person` object through `x`
+
+As you can see, contrary to Java, Ruby _does_ allow classes to be stored in variables.
+They can also be passed freely as parameter values and returned.
+
+Depending on the language, we can do different things with different kinds of values.
+We distinguish three *classes* of citizens (here, the term class has nothing to do with classes from object oriented languages): first, second and third class.
+
+[.center,options="header",cols="^2,^,^,^",width="60%"]
+|===
+| | Pass as parameter | Return | Store in variable
+| First class | {check} | {check} | {check}
+| Second class | {check} | {nocheck} | {nocheck}
+| Third class | {nocheck} | {nocheck} | {nocheck}
+|===
+
+Second class citizens are rare in practice.
+Generally, a value is either first class or third class.
+
+[.center,options="header",cols="^,^,^",width="50%"]
+.Categorization in Java
+|===
+| First class | Second class | Third class
+| integers | | classes
+| booleans | | packages
+| objects | | labels
+|===

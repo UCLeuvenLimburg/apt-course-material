@@ -1,0 +1,205 @@
+= Higher Order Functions
+
+A *higher order function* is a function that takes a function as parameter and/or returns one.
+For this to be possible, functions need to be first class citizens.
+Fortunately, most modern languages do consider functions to be first class citizens.
+
+== Conditionals
+
+Let us examine the `if` construct from up close.
+Its exact form varies from language to language, but we can generally distinguish three parts:
+
+* There's a condition, i.e., an expression that evaluates to a boolean value.
+* There's a block of code to be executed if the condition evaluates to true.
+* There's another block of code to be executed if the condition evaluates to false.
+  Some languages allow us to omit this block, but we can just pretend they associate the empty block with false.
+
+=== Rolling Our Own
+
+Some languages however have no built-in support for `if` at all.
+These languages generally offer ``if``'s functionality as a library function instead of a language feature.
+Let us try to find a way to build our own `if` in TypeScript, which we'll call `myIf`.
+We need to be able to rewrite the code below using our own implementation:
+
+[source,typescript]
+----
+if ( condition )
+{
+    /* then-clause */
+}
+else
+{
+    /* else-clause */
+}
+----
+
+As explained above, there are three components.
+Our `myIf` will therefore be a function that takes three parameters.
+
+[source,typescript]
+----
+function myIf(condition : any, thenClause : any, elseClause : any) : any
+{
+    // ???
+}
+----
+
+Right now, we left the parameter types and return type unspecified, i.e., we use `any` which allows values of any type.
+We would prefer to have more specific types though.
+
+=== Return Type
+
+We distinguish between statements and expressions:
+
+* An *expression* evaluates to a certain value.
+* A *statement* does not. It is simply executed for its side effects.
+
+Many languages choose to omit statements altogether, because it is an unnecessary complication.
+Such languages model statements as expressions returning their equivalent of `void`.
+
+In many languages, among which JavaScript and TypeScript, the `if` construct is a statement, meaning we can use `void` as ``myIf``'s return type.
+
+[source,typescript]
+----
+function myIf(condition : any, thenClause : any, elseClause : any) : void
+{
+    // ???
+}
+----
+
+=== Condition
+
+The condition parameter is easy to deal with: it should be clear that it needs to be a boolean value.
+
+[source,typescript]
+----
+function myIf(condition : boolean, thenClause : any, elseClause : any) : void
+{
+    // ???
+}
+----
+
+=== Clauses
+
+Now comes the interesting part: `thenClause` and `elseClause` are supposed to be blocks of code.
+How can we pass blocks of code to `myIf`?
+
+The answer is quite simple: functions.
+A function is in essence nothing more than an "object" than contains a block of code.
+Typically functions support only one operation, namely the _function call_, which causes the block of code to be run.
+
+So, let us put this `thenClause` and `elseClause` in functions:
+
+[source,typescript]
+----
+function thenClause() : void { /* thenClause */ }
+function elseClause() : void { /* elseClause */ }
+
+myIf(condition, thenClause, elseClause);
+----
+
+Having to define two functions for each conditional might be asking a bit much.
+Luckily, we can rely on lambdas:
+
+[source,typescript]
+----
+myIf(condition, () => /* thenClause */, () => /* elseClause */);
+----
+
+Both parameters are functions that take zero arguments and don't return a value.
+This type is written `() => void` in TypeScript.
+This allows us to put the finishing touches on ``myIf``'s signature:
+
+[source,typescript]
+----
+function myIf(condition : boolean,
+              thenClause : () => void,
+              elseClause : () => void) : void
+{
+    // ???
+}
+----
+
+=== Implementation
+
+Only ``myIf``'s body remains.
+The straightforward way would be to write
+
+[source,typescript]
+----
+function myIf(condition : boolean,
+              thenClause : () => void,
+              elseClause : () => void) : void
+{
+    if ( condition )
+        thenClause();
+    else
+        elseClause();
+}
+----
+
+While this would work, it feels a bit like cheating: we're using `if` in ``myIf``'s definition.
+Languages without `if` do offer ways to implement `if` without cheating.
+However, JavaScript is not one of these languages and doesn't cooperate here.
+The best way I could find to implement `myIf` without `if` is to rely on the short-circuiting behavior of the `&&` and `||` operators`:
+
+[source,typescript]
+----
+function myIf(condition : boolean,
+              thenClause : () => void,
+              elseClause : () => void) : void
+{
+    (condition && thenClause()) || (!condition && elseClause());
+}
+----
+
+=== If Expression
+
+As explained earlier, `if` is a statement in many languages, such as C, C++, C#, Java, JavaScript, TypeScript and Python.
+However, having an `if` *expression* can come in handy, which is why these languages provide an alternative to `if`:
+
+[source,java]
+----
+var result = condition ? ifTrue : ifFalse;
+----
+
+[source,python]
+----
+result = ifTrue if condition else ifFalse
+----
+
+Generally you'll want both clauses to return a value of the same type.
+
+We can turn our `myIf` into an expression by letting the clauses return a value:
+
+[source,typescript]
+----
+function myIf<T>(condition : boolean,
+                 thenClause : () => T,
+                 elseClause : () => T) : T
+{
+    if ( condition )
+        return thenClause();
+    else
+        return elseClause();
+}
+----
+
+[IMPORTANT]
+.Cakepoint Opportunity
+====
+Why not simply implement `myIf` as shown below?
+
+[source,typescript]
+----
+function myIf<T>(condition : boolean,
+                 thenClause : T,
+                 elseClause : T) : T
+{
+    if ( condition )
+        return thenClause;
+    else
+        return elseClause;
+}
+----
+====

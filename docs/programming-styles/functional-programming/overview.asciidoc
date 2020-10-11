@@ -22,7 +22,7 @@ Good programming consists of being able to apply the right concept in the right 
 * <<definition.asciidoc#,What is functional programming?>>
 * Why functional programming?
 ** <<state-dangers.asciidoc#,The Dangers of State>>
-* Higher Order Functions
+* <<higher-order-functions#,Higher Order Functions>>
 * Memoization
 * Laziness
 * Persistent Data Structures
