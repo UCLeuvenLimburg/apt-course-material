@@ -203,3 +203,87 @@ function myIf<T>(condition : boolean,
 }
 ----
 ====
+
+== Conclusion
+
+Implementing an `if` as a function is not very useful in a language that has conditionals built-in.
+The point of this section was to show that we can easily use functions to represent blocks of code.
+
+= Loops
+
+Let's give loops the same treatment as we did conditionals in the previous section.
+
+== `myWhile`
+
+We start off by simulate our own `while` loop using functions.
+We'll call this function `myWhile`.
+
+Using the same approach as before, we start off by identifying the different components of a `while` loop:
+
+[source,typescript]
+----
+while ( condition )
+{
+    /* body */
+}
+----
+
+* There's again a condition.
+* Instead of having two clauses, a `while` has just one body.
+* A `while` is a statement: it does not evaluate to a value.
+
+Based on this information, we could try the following implementation:
+
+[source,typescript]
+----
+function myWhile(condition : boolean,
+                 body : () => void) : void
+{
+    if ( condition )
+    {
+        body();
+        myWhile(condition, body);
+    }
+}
+----
+
+This first attempt has a fatal flaw.
+
+[source,typescript]
+----
+let i = 0;
+myWhile(i < 10, () => ++i);
+----
+
+The above code will cause the looping to never end (technically, this isn't true: it will end in stack overflow error.)
+This is due to the condition `i < 10` being evaluated once when `myWhile` gets called.
+At that time, `i < 10` evaluates to `true`.
+This same value is reused by the `if` statement that controls whether another iteration is necessary.
+In other words, `myWhile` either does not execute its body, or it executes it an infinite number of times.
+
+To remedy this, we need to see the condition not as boolean value, but as a code block (i.e., function) that returns a boolean value.
+This allows us to *reevaluate* the condition before every iteration.
+
+[source,typescript]
+----
+function myWhile(condition : () => boolean,
+                 body : () => void) : void
+{
+    if ( condition() )
+    {
+        body();
+        myWhile(condition, body);
+    }
+}
+----
+
+Usage thus becomes
+
+[source,typescript]
+----
+let i = 0;
+myWhile(() => i < 10, () => ++i);
+----
+
+== Types of Loops
+
