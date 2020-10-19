@@ -1,5 +1,6 @@
 require_relative 'functional.rb'
 require_relative 'imperative.rb'
+require_relative '01-find-if.rb'
 
 
 Evaluation = Struct.new :student, :grade, :course
@@ -21,3 +22,4 @@ end
 
 p functional(evaluations)
 p imperative(evaluations)
+p findif(evaluations)
