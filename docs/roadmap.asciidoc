@@ -53,3 +53,7 @@
 ** Config files (e.g. groovy)
 ** Ruby
 ** Macros
+
+== Exercises
+
+* Fake `for` loop as higher order function
