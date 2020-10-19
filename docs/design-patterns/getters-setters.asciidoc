@@ -114,7 +114,7 @@ public class Interval
 }
 ----
 
-[WARNING]
+[NOTE,caption={cakepoint}]
 .Cakepoint opportunity
 ====
 Note that this code contains a bug.
@@ -267,7 +267,7 @@ interval.UpperBound += 10;
 
 In the case that `UpperBound` is a property, ``UpperBound``'s `set` code will be executed where `value` is set to its new value.
 
-[WARNING]
+[NOTE,caption={cakepoint}]
 .Cakepoint opportunity
 ====
 There actually still is a Uniform Access Principle violation, but where?
