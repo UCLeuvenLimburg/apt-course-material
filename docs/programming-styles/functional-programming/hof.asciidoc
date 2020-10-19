@@ -665,7 +665,7 @@ const evaluation = evaluations[i]; // error: i could be null
 
 We update our `top_students` function:
 
-[source,typescript,linenums,highlight='20']
+[source,typescript,highlight='20']
 ----
 function top_students(evaluations : Evaluation[]) : { [key : string] : string[] }
 {
@@ -748,3 +748,230 @@ We could always generalize `find_index` further.
 Do you have improvements in mind?
 ====
 
+=== `filter_passing`
+
+We will now turn our attention to the `if` highlighted below.
+
+[source,typescript,highlight='8']
+----
+function top_students(evaluations : Evaluation[]) : { [key : string] : string[] }
+{
+    const evaluations_by_course : { [key : string] : Evaluation[] } = {};
+
+    for ( const evaluation of evaluations )
+    {
+        // Ignore failing evaluations
+        if ( evaluation.grade >= 10 )
+        {
+            // Add default value [] for new keys
+            if ( !(evaluation.course in evaluations_by_course) )
+            {
+                evaluations_by_course[evaluation.course] = [];
+            }
+
+            const course_evaluations = evaluations_by_course[evaluation.course];
+
+            // course_evaluations is sorted by descending grade
+            // Insert evaluation into this array, respecting the order
+            const i = find_index(evaluation, e => evaluation.grade >= e.grade) || course_evaluations.length;
+            course_evaluations.splice(i, 0, evaluation);
+
+            // Keep only first three elements
+            if ( course_evaluations.length > 3 )
+            {
+                course_evaluations.pop();
+            }
+        }
+    }
+
+    // Extract student names from evaluations
+    const result : { [key : string] : string[] } = {};
+
+    for ( const course in evaluations_by_course )
+    {
+        const students = [];
+
+        for ( const evaluation of evaluations_by_course[course] )
+        {
+            students.push(evaluation.student);
+        }
+
+        result[course] = students;
+    }
+
+    return result;
+}
+----
+
+This `if` causes only ``Evaluation``s whose `grade` is at least `10` to be considered.
+This kind of filtering in a loop is quite common and deserves to be made more explicit.
+Let's write a function `filter_passing` that selects all ``Evaluation``s that have a good grade.
+
+[source,typescript,highlight='1-14;19']
+----
+function filter_passing(evaluations : Evaluation[]) : Evaluation[]
+{
+    const result : Evaluation[] = [];
+
+    for ( const evaluation of evaluations )
+    {
+        if ( evaluation.grade >= 10 )
+        {
+            result.push(evaluation);
+        }
+    }
+
+    return result;
+}
+
+function top_students(evaluations : Evaluation[]) : { [key : string] : string[] }
+{
+    const evaluations_by_course : { [key : string] : Evaluation[] } = {};
+    const passing_evaluations = filter_passing(evaluations);
+
+    for ( const evaluation of passing_evaluations )
+    {
+        // Add default value [] for new keys
+        if ( !(evaluation.course in evaluations_by_course) )
+        {
+            evaluations_by_course[evaluation.course] = [];
+        }
+
+        const course_evaluations = evaluations_by_course[evaluation.course];
+
+        // course_evaluations is sorted by descending grade
+        // Insert evaluation into this array, respecting the order
+        const i = find_index(evaluation, e => evaluation.grade >= e.grade) || course_evaluations.length;
+        course_evaluations.splice(i, 0, evaluation);
+
+        // Keep only first three elements
+        if ( course_evaluations.length > 3 )
+        {
+            course_evaluations.pop();
+        }
+    }
+
+    // Extract student names from evaluations
+    const result : { [key : string] : string[] } = {};
+
+    for ( const course in evaluations_by_course )
+    {
+        const students = [];
+
+        for ( const evaluation of evaluations_by_course[course] )
+        {
+            students.push(evaluation.student);
+        }
+
+        result[course] = students;
+    }
+
+    return result;
+}
+----
+
+=== `filter`
+
+The condition `evaluation.grade >= 10` is hardcoded in `filter_passing`.
+We can again factor out this expression by introducing a parameter `predicate`:
+
+[source,typescript]
+----
+function filter(evaluations : Evaluation[],
+                predicate : (evaluation : Evaluation) => boolean) : Evaluation[]
+{
+    const result : Evaluation[] = [];
+
+    for ( const evaluation of evaluations )
+    {
+        if ( predicate(evaluation) )
+        {
+            result.push(evaluation);
+        }
+    }
+
+    return result;
+}
+----
+
+=== `filter` v2.0
+
+There is no reason for `filter` to be limited to `Evaluation` values.
+We can easily turn it into a function that works with all types:
+
+[source,typescript]
+----
+function filter<T>>(ts : T[], predicate : (t : T) => boolean) : T[]
+{
+    const result : T[] = [];
+
+    for ( const t of ts )
+    {
+        if ( predicate(t) )
+        {
+            result.push(t);
+        }
+    }
+
+    return result;
+}
+----
+
+We update `top_students` to make use of this new `filter`.
+
+[source,typescript]
+----
+function top_students(evaluations : Evaluation[]) : { [key : string] : string[] }
+{
+    const evaluations_by_course : { [key : string] : Evaluation[] } = {};
+    const passing_evaluations = filter(evaluations, e => e.grade >= 10);
+
+    for ( const evaluation of passing_evaluations )
+    {
+        // Add default value [] for new keys
+        if ( !(evaluation.course in evaluations_by_course) )
+        {
+            evaluations_by_course[evaluation.course] = [];
+        }
+
+        const course_evaluations = evaluations_by_course[evaluation.course];
+
+        // course_evaluations is sorted by descending grade
+        // Insert evaluation into this array, respecting the order
+        const i = find_index(evaluation, e => evaluation.grade >= e.grade) || course_evaluations.length;
+        course_evaluations.splice(i, 0, evaluation);
+
+        // Keep only first three elements
+        if ( course_evaluations.length > 3 )
+        {
+            course_evaluations.pop();
+        }
+    }
+
+    // Extract student names from evaluations
+    const result : { [key : string] : string[] } = {};
+
+    for ( const course in evaluations_by_course )
+    {
+        const students = [];
+
+        for ( const evaluation of evaluations_by_course[course] )
+        {
+            students.push(evaluation.student);
+        }
+
+        result[course] = students;
+    }
+
+    return result;
+}
+----
+
+= Conclusion
+
+TODO
+
+* Algorithmic design patterns
+* Loops are low level
+* HOFs add more 'layers'
+* Reusable building blocks
