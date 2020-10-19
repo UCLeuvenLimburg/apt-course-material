@@ -285,5 +285,39 @@ let i = 0;
 myWhile(() => i < 10, () => ++i);
 ----
 
-== Types of Loops
+== Refactoring Algorithms
+
+Consider the code below:
+
+[source,ruby]
+----
+def mul2(x)
+    x * 2
+end
+
+def mul3(x)
+    x * 3
+end
+
+def mul4(x)
+    x * 4
+end
+----
+
+Clearly, this code could be improved upon by factoring out the multiplication constant and turning it into a parameter:
+
+[source,ruby]
+----
+def mul(x, y)
+    x * y
+end
+----
+
+It's a silly example, but you probably make similar mistakes without noticing, especially when it comes to factoring out *code*.
+
+
+
+# map filter reduce max_by group_by
+
+
 
