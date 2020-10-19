@@ -6,7 +6,7 @@
 :toclevels: 3
 :experimental:
 :nofooter:
-:source-highlighter: rouge
+:source-highlighter: pygments
 
 = Roadmap
 
