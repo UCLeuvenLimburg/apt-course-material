@@ -313,11 +313,353 @@ def mul(x, y)
 end
 ----
 
-It's a silly example, but you probably make similar mistakes without noticing, especially when it comes to factoring out *code*.
+It's a silly example, but you probably make similar mistakes without noticing, especially when it comes to the possibility of factoring out *code*.
 
+=== Initial Imperative Version
 
+We introduce a class `Evaluation` with fields `student`, `grade` and `course`.
+Their meanings should be clear.
 
-# map filter reduce max_by group_by
+[source,ruby]
+----
+Evaluation = Struct.new :student, :grade, :course
+----
 
+Examine the source code below and try to find out what it does.
 
+[source,typescript,linenums]
+----
+function top_students(evaluations : Evaluation[]) : { [key : string] : string[] }
+{
+    const evaluations_by_course : { [key : string] : Evaluation[] } = {};
+
+    for ( const evaluation of evaluations )
+    {
+        if ( evaluation.grade >= 10 )
+        {
+            if ( !(evaluation.course in evaluations_by_course) )
+            {
+                evaluations_by_course[evaluation.course] = [];
+            }
+
+            const course_evaluations = evaluations_by_course[evaluation.course];
+
+            let i = 0;
+            while ( i < course_evaluations.length &&
+                    evaluation.grade < course_evaluations[i].grade )
+            {
+                ++i;
+            }
+
+            course_evaluations.splice(i, 0, evaluation);
+
+            if ( course_evaluations.length > 3 )
+            {
+                course_evaluations.pop();
+            }
+        }
+    }
+
+    const result : { [key : string] : string[] } = {};
+
+    for ( const course in evaluations_by_course )
+    {
+        const students = [];
+
+        for ( const evaluation of evaluations_by_course[course] )
+        {
+            students.push(evaluation.student);
+        }
+
+        result[course] = students;
+    }
+
+    return result;
+}
+----
+
+[%collapsible]
+.Click to see what the code does
+====
+=====
+The code determines the top 3 students for each course.
+=====
+====
+
+This code is in desperate need of refactoring.
+By doing so,
+
+* the code will become easier to read and self-documenting;
+* the code will be split into reusable parts.
+
+=== Adding Comments
+
+We start off by adding some comments.
+
+[source,typescript]
+----
+function top_students(evaluations : Evaluation[]) : { [key : string] : string[] }
+{
+    const evaluations_by_course : { [key : string] : Evaluation[] } = {};
+
+    for ( const evaluation of evaluations )
+    {
+        // Ignore failing evaluations
+        if ( evaluation.grade >= 10 )
+        {
+            // Add default value [] for new keys
+            if ( !(evaluation.course in evaluations_by_course) )
+            {
+                evaluations_by_course[evaluation.course] = [];
+            }
+
+            const course_evaluations = evaluations_by_course[evaluation.course];
+
+            // course_evaluations is sorted by descending grade
+            // Insert evaluation into this array, respecting the order
+            let i = 0;
+            while ( i < course_evaluations.length &&
+                    evaluation.grade < course_evaluations[i].grade )
+            {
+                ++i;
+            }
+
+            course_evaluations.splice(i, 0, evaluation);
+
+            // Keep only first three elements
+            if ( course_evaluations.length > 3 )
+            {
+                course_evaluations.pop();
+            }
+        }
+    }
+
+    // Extract student names from evaluations
+    const result : { [key : string] : string[] } = {};
+
+    for ( const course in evaluations_by_course )
+    {
+        const students = [];
+
+        for ( const evaluation of evaluations_by_course[course] )
+        {
+            students.push(evaluation.student);
+        }
+
+        result[course] = students;
+    }
+
+    return result;
+}
+----
+
+=== `find_index`
+
+We focus on the highlighted code fragment.
+
+[source,typescript,highlight='20-26']
+----
+function top_students(evaluations : Evaluation[]) : { [key : string] : string[] }
+{
+    const evaluations_by_course : { [key : string] : Evaluation[] } = {};
+
+    for ( const evaluation of evaluations )
+    {
+        // Ignore failing evaluations
+        if ( evaluation.grade >= 10 )
+        {
+            // Add default value [] for new keys
+            if ( !(evaluation.course in evaluations_by_course) )
+            {
+                evaluations_by_course[evaluation.course] = [];
+            }
+
+            const course_evaluations = evaluations_by_course[evaluation.course];
+
+            // course_evaluations is sorted by descending grade
+            // Insert evaluation into this array, respecting the order
+            let i = 0;
+            while ( i < course_evaluations.length &&
+                    evaluation.grade < course_evaluations[i].grade )
+            {
+                ++i;
+            }
+
+            course_evaluations.splice(i, 0, evaluation);
+
+            // Keep only first three elements
+            if ( course_evaluations.length > 3 )
+            {
+                course_evaluations.pop();
+            }
+        }
+    }
+
+    // Extract student names from evaluations
+    const result : { [key : string] : string[] } = {};
+
+    for ( const course in evaluations_by_course )
+    {
+        const students = [];
+
+        for ( const evaluation of evaluations_by_course[course] )
+        {
+            students.push(evaluation.student);
+        }
+
+        result[course] = students;
+    }
+
+    return result;
+}
+----
+
+This code finds the index `i` of the first `Evaluation` for which `evaluation.grade >= course_evaluations[i]`.
+We extract the highlighted piece of code to a separate function.
+
+[source,typescript,highlight='1-12;33']
+----
+function find_index(evaluations : Evaluation[], evaluation : Evaluation) : number
+{
+    let i = 0;
+
+    while ( i < evaluations.length && evaluation.grade < evaluations[i].grade )
+    {
+        ++i;
+    }
+
+    return i;
+}
+
+function top_students(evaluations : Evaluation[]) : { [key : string] : string[] }
+{
+    const evaluations_by_course : { [key : string] : Evaluation[] } = {};
+
+    for ( const evaluation of evaluations )
+    {
+        // Ignore failing evaluations
+        if ( evaluation.grade >= 10 )
+        {
+            // Add default value [] for new keys
+            if ( !(evaluation.course in evaluations_by_course) )
+            {
+                evaluations_by_course[evaluation.course] = [];
+            }
+
+            const course_evaluations = evaluations_by_course[evaluation.course];
+
+            // course_evaluations is sorted by descending grade
+            // Insert evaluation into this array, respecting the order
+            let i = find_index(evaluation, course_evaluations);
+            course_evaluations.splice(i, 0, evaluation);
+
+            // Keep only first three elements
+            if ( course_evaluations.length > 3 )
+            {
+                course_evaluations.pop();
+            }
+        }
+    }
+
+    // Extract student names from evaluations
+    const result : { [key : string] : string[] } = {};
+
+    for ( const course in evaluations_by_course )
+    {
+        const students = [];
+
+        for ( const evaluation of evaluations_by_course[course] )
+        {
+            students.push(evaluation.student);
+        }
+
+        result[course] = students;
+    }
+
+    return result;
+}
+----
+
+The function `find_index` is hardly reusable.
+In fact, this refactoring merely moved a bit of code to another place, with limited benefits.
+Let's generalize this function a bit.
+
+=== `find_index` v2.0
+
+Finding the index of an element is a clean, intuitive operation.
+Right now, this element is hardcoded as the first one for which `evaluation.grade >= evaluations[i].grade`.
+We can generalize this by factoring out the condition:
+
+[source,typescript]
+----
+function find_index(evaluations : Evaluation[],
+                    predicate : (evaluation : Evaluation) => boolean) : number
+{
+    let i = 0;
+
+    while ( i < evaluations.length && !predicate(evaluations[i]) )
+    {
+        ++i;
+    }
+
+    return i;
+}
+----
+
+Note how we introduced the `predicate` parameter: it is a function that takes an `Evaluation` and returns a `boolean`.
+`find_index` will go through the list `evaluations` and return the index of the first evaluation for which `predicate` returns `true`.
+
+What happens if no `Evaluation` satisfies `predicate`?
+In this case, it appears that we return an invalid index, i.e., one past the last valid index.
+This is a bit iffy: this makes it "difficult" for the client to determine whether the return value is indeed a valid index.
+We'd prefer to return a more easily identifiable value.
+
+Let's first rewrite it using a `for`-loop, since this will improve the code's readability:
+
+[source,typescript]
+----
+function find_index(evaluations : Evaluation[],
+                    predicate : (evaluation : Evaluation) => boolean) : number
+{
+    for ( let i = 0; i !== evaluations.length; ++i )
+    {
+        if ( predicate(evaluations[i]) )
+        {
+            return i;
+        }
+    }
+
+    return /* ??? */;
+}
+----
+
+We could use `-1` to represent "no such item", as is the case in Java.
+This is a terrible idea however: the client could still get away with not checking the return value and use it as an index anyway, causing a runtime error to occur.
+It is better to force to user to check and to check this happens at compile time.
+This can be achieved in TypeScript by returning `null`:
+
+[source,typescript]
+----
+function find_index(evaluations : Evaluation[],
+                    predicate : (evaluation : Evaluation) => boolean) : number | null
+{
+    for ( let i = 0; i !== evaluations.length; ++i )
+    {
+        if ( predicate(evaluations[i]) )
+        {
+            return i;
+        }
+    }
+
+    return null;
+}
+----
+
+If the client fails to check for `null`, TypeScript will complain:
+
+[source,typescript]
+----
+const i = find_index(evaluations, e => e.grade >= 10);
+const evaluation = evaluations[i]; // error: i could be null
+----
 
