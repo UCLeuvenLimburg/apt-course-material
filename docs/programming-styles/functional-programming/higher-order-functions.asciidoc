@@ -11,6 +11,7 @@
 :stem:
 :check: &#x2713;
 :nocheck: &#x2717;
+:cakepoint: 🎂
 
 = Higher Order Functions
 

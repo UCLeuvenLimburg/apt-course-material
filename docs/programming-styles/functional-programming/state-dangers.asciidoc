@@ -9,6 +9,7 @@
 :experimental:
 :nofooter:
 :stem:
+:cakepoint: 🎂
 
 = The Dangers of State
 
