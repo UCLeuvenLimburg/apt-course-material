@@ -1003,7 +1003,7 @@ All ``Evaluation``s with the same key should then be grouped together.
 [source,typescript]
 ----
 function group_by(evaluations : Evaluation[],
-                  keyOf : (e : Evaluation) : string ) : { [key : string] : Evaluation[] }
+                  keyOf : (e : Evaluation) : string) : { [key : string] : Evaluation[] }
 {
     const result : { [key : string] : Evaluation[] } = {};
 
@@ -1037,6 +1037,247 @@ We hardcoded the keys as `string`.
 Why did we not generalize this to some type `K`?
 For example, we could choose to group by grade, meaning we'd need `K=number` instead of `K=string`.
 ====
+
+=== `group_by` v2.0
+
+The last step in generalizing `group_by` is allowing it to work with objects of any type, not just ``Evaluation``s.
+
+[source,typescript]
+----
+function group_by<T>(ts : T[], keyOf : (t : T) : string) : { [key : string] : T[] }
+{
+    const result : { [key : string] : T[] } = {};
+
+    for ( const t of ts )
+    {
+        const key = keyOf(t);
+
+        if ( !(key in result) )
+        {
+            result[key] = [];
+        }
+
+        result[key].push(t);
+    }
+
+    return result;
+}
+----
+
+We update `top_students` so as to incorporate `group_by`:
+
+[source,typescript]
+----
+function top_students(evaluations : Evaluation[]) : { [key : string] : string[] }
+{
+    const evaluations_by_course : { [key : string] : Evaluation[] } = {};
+    const passing_evaluations = filter(evaluations, e => e.grade >= 10);
+    const evaluations_by_course = group_by(passing_evaluations, e => e.course);
+    const top_evaluations_by_course : { [key : string] : Evaluation[] } = {};
+
+    for ( const [ course, course_evaluations ] of Object.entries(evaluations_by_course) )
+    {
+        const sorted_top_evaluations : Evaluation[] = [];
+
+        const i = find_index(sorted_top_evaluations,
+                             e => evaluation.grade >= e.grade) || course_evaluations.length;
+        sorted_top_evaluations.splice(i, 0, evaluation);
+
+        if ( sorted_top_evaluations.length > 3 )
+        {
+            sorted_top_evaluations.pop();
+        }
+
+        top_evaluations_by_course[course] = sorted_top_evaluations;
+    }
+
+    const result : { [key : string] : string[] } = {};
+
+    for ( const [course, top_evaluations] in Object.entries(top_evaluations_by_course) )
+    {
+        const students = [];
+
+        for ( const top_evaluation of top_evaluations )
+        {
+            students.push(top_evaluation.student);
+        }
+
+        result[course] = students;
+    }
+
+    return result;
+}
+----
+
+=== `extract_students`
+
+Let's take on the loop highlighted below:
+
+[source,typescript,highlight='28-35']
+----
+function top_students(evaluations : Evaluation[]) : { [key : string] : string[] }
+{
+    const evaluations_by_course : { [key : string] : Evaluation[] } = {};
+    const passing_evaluations = filter(evaluations, e => e.grade >= 10);
+    const evaluations_by_course = group_by(passing_evaluations, e => e.course);
+    const top_evaluations_by_course : { [key : string] : Evaluation[] } = {};
+
+    for ( const [ course, course_evaluations ] of Object.entries(evaluations_by_course) )
+    {
+        const sorted_top_evaluations : Evaluation[] = [];
+
+        const i = find_index(sorted_top_evaluations,
+                             e => evaluation.grade >= e.grade) || course_evaluations.length;
+        sorted_top_evaluations.splice(i, 0, evaluation);
+
+        if ( sorted_top_evaluations.length > 3 )
+        {
+            sorted_top_evaluations.pop();
+        }
+
+        top_evaluations_by_course[course] = sorted_top_evaluations;
+    }
+
+    const result : { [key : string] : string[] } = {};
+
+    for ( const [course, top_evaluations] in Object.entries(top_evaluations_by_course) )
+    {
+        const students = [];
+
+        for ( const top_evaluation of top_evaluations )
+        {
+            students.push(top_evaluation.student);
+        }
+
+        result[course] = students;
+    }
+
+    return result;
+}
+----
+
+This fragment takes a list of ``Evaluation``s, extracts the `student` field from them and puts these in a new list.
+Once more, we put this in a separate function:
+
+[source,typescript]
+----
+function extract_students(evaluations : Evaluation[]) : string[]
+{
+    const students = [];
+
+    for ( const evaluation of evaluations )
+    {
+        students.push(evaluation.student);
+    }
+
+    return students;
+}
+----
+
+=== `map` v1.0
+
+Instead of extracting students, we can generalize it to extract an arbitrary property.
+For this, we apply the same old trick: a parameter that, given an `Evaluation`, returns the value we are interested in.
+
+This operation is typically called `map`, a nomenclature we'll adopt here too.
+
+[source,typescript]
+----
+function map(evaluations : Evaluation[],
+             extract : (e : Evaluation) => string) : string[]
+{
+    const result = [];
+
+    for ( const evaluation of evaluations )
+    {
+        result.push(extract(evaluation));
+    }
+
+    return result;
+}
+----
+
+=== `map` v2.0
+
+The code above assumes we are always extracting ``string``s, but there's no reason to limit ourselves like that.
+We replace `string` by a type parameter `U`:
+
+[source,typescript]
+----
+function map<U>(evaluations : Evaluation[],
+                extract : (e : Evaluation) => U) : U[]
+{
+    const result = [];
+
+    for ( const evaluation of evaluations )
+    {
+        result.push(extract(evaluation));
+    }
+
+    return result;
+}
+----
+
+=== `map` v3.0
+
+In a final step, we free `map` from its dependency on `Evaluation`.
+We introduce a second type parameter that replaces `Evaluation`:
+
+[source,typescript]
+----
+function map<T, U>(ts : T[], extract : (t : T) => U) : U[]
+{
+    const result = [];
+
+    for ( const t of ts )
+    {
+        result.push(extract(t));
+    }
+
+    return result;
+}
+----
+
+We update `top_students`:
+
+[source,typescript,highlight='28-35']
+----
+function top_students(evaluations : Evaluation[]) : { [key : string] : string[] }
+{
+    const evaluations_by_course : { [key : string] : Evaluation[] } = {};
+    const passing_evaluations = filter(evaluations, e => e.grade >= 10);
+    const evaluations_by_course = group_by(passing_evaluations, e => e.course);
+    const top_evaluations_by_course : { [key : string] : Evaluation[] } = {};
+
+    for ( const [ course, course_evaluations ] of Object.entries(evaluations_by_course) )
+    {
+        const sorted_top_evaluations : Evaluation[] = [];
+
+        const i = find_index(sorted_top_evaluations,
+                             e => evaluation.grade >= e.grade) || course_evaluations.length;
+        sorted_top_evaluations.splice(i, 0, evaluation);
+
+        if ( sorted_top_evaluations.length > 3 )
+        {
+            sorted_top_evaluations.pop();
+        }
+
+        top_evaluations_by_course[course] = sorted_top_evaluations;
+    }
+
+    const result : { [key : string] : string[] } = {};
+
+    for ( const [course, top_evaluations] of Object.entries(top_evaluations_by_course) )
+    {
+        const top_students = map(top_evaluations, e => e.student);
+
+        result[course] = top_students;
+    }
+
+    return result;
+}
+----
+
 
 = Conclusion
 
