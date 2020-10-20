@@ -967,6 +967,77 @@ function top_students(evaluations : Evaluation[]) : { [key : string] : string[] 
 }
 ----
 
+=== `group_by_course`
+
+The function `top_students` builds an object that groups ``Evaluation``s by course.
+Again, this is functionality that is perfectly reusable in other contexts.
+Let's first simply move the code out into a separate function.
+
+[source,typescript]
+----
+function group_by_course(evaluations : Evaluation[]) : { [key : string] : Evaluation[] }
+{
+    const result : { [key : string] : Evaluation[] } = {};
+
+    for ( const evaluation of evaluations )
+    {
+        if ( !(evaluation.course in result) )
+        {
+            result[evaluation.course] = [];
+        }
+
+        result[evaluation.course].push(evaluation);
+    }
+
+    return result;
+}
+----
+
+=== `group_by` v1.0
+
+Right now, we group ``Evaluation``s by course.
+We can generalize this to grouping by arbitrary property.
+To make this possible, we add a parameter that given an `Evaluation` returns a "key" associated with this `Evaluation`.
+All ``Evaluation``s with the same key should then be grouped together.
+
+[source,typescript]
+----
+function group_by(evaluations : Evaluation[],
+                  keyOf : (e : Evaluation) : string ) : { [key : string] : Evaluation[] }
+{
+    const result : { [key : string] : Evaluation[] } = {};
+
+    for ( const evaluation of evaluations )
+    {
+        const key = keyOf(evaluation);
+
+        if ( !(key in result) )
+        {
+            result[key] = [];
+        }
+
+        result[key].push(evaluation);
+    }
+
+    return result;
+}
+----
+
+We can then use this function to group by course as follows:
+
+[source,typescript]
+----
+const evaluations_by_course = group_by(evaluations, e => e.course);
+----
+
+[NOTE,caption={cakepoint}]
+.Cakepoint Opportunity
+====
+We hardcoded the keys as `string`.
+Why did we not generalize this to some type `K`?
+For example, we could choose to group by grade, meaning we'd need `K=number` instead of `K=string`.
+====
+
 = Conclusion
 
 TODO
