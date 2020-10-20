@@ -1278,6 +1278,12 @@ function top_students(evaluations : Evaluation[]) : { [key : string] : string[] 
 }
 ----
 
+=== `map_keys`
+
+
+=== `max_by`
+
+TODO
 
 = Conclusion
 
