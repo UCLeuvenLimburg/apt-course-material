@@ -98,13 +98,13 @@ function map<T, U>(ts : T[], f : (t : T) => U) : U[]
 
 export function top_students(evaluations : Evaluation[]) : { [key : string] : string[] }
 {
-    const evaluations_by_course = group_by(evaluations, e => e.course);
+    const passing_evaluations = filter(evaluations, e => e.grade >= 10);
+    const evaluations_by_course = group_by(passing_evaluations, e => e.course);
     return map_values(evaluations_by_course, find_top_3);
 
     function find_top_3(course_evaluations : Evaluation[]) : string[]
     {
-        const passing_evaluations = filter(course_evaluations, e => e.grade >= 10);
-        const best_three_evaluations = max_by(passing_evaluations, e => e.grade, 3);
+        const best_three_evaluations = max_by(course_evaluations, e => e.grade, 3);
         const names = map(best_three_evaluations, e => e.student);
 
         return names;
