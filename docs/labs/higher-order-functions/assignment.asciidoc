@@ -1,0 +1,44 @@
+// ROOT
+:tip-caption: 💡
+:note-caption: ℹ️
+:important-caption: ⚠️
+:warning-caption: ⚠️
+:task-caption: 👨‍🔧
+:nofooter:
+:toc: left
+:toclevels: 3
+:experimental:
+:source-highlighter: pygments
+:cakepoint: 🎂
+:icons: font
+
+= Assignment
+
+Write the higher order functions with the functionality described below.
+
+* Use C++, C#, Ruby, Python, JavaScript or TypeScript.
+** C#: Implement the functions as extension methods on `IEnumerable<T>`. Do not import `System.Linq`.
+** JavaScript/TypeScript: add them to `Array.prototype` so you can call them as methods.
+** Ruby: define a `List` class and add the functionality below as methods of that class.
+* Do not rely on built-in functionality.
+* You can use state inside your implementation. What matters is that to the outside world, it must seem as if the code is stateless.
+* The parameters must of course not be modified in any way. This includes `this` for methods.
+
+[.center,options="header",cols=">,<5",width="80%"]
+|===
+| Signature | Description
+| `xs.any(p)` | Checks if an element exists for which `p` returns `true`.
+| `xs.all(p)` | Checks if `p` returns `true` for all elements.
+| `xs.find_first(p)` | Finds the first element for which `p` returns `true`.
+| `xs.find_index(p)` | Finds the index of the first element for which `p` returns `true`.
+| `xs.filter(p)` | Returns all elements for which `p` returns `true`.
+| `xs.map(f)` | Applies `f` to each element and returns the results as a list.
+| `xs.take_while(p)` | Collects elements in a list until `p` returns `false`.
+| `xs.drop_while(p)` | Drops elements in a list until `p` returns `false`.
+| `xs.min_by(f)` | Returns element for which `f` returns lowest value.
+| `xs.min_by(n, f)` | Returns `n` element for which `f` returns lowest values.
+| `xs.max_by(f)` | Returns element for which `f` returns highest value.
+| `xs.max_by(n, f)` | Returns `n` elements for which `f` returns highest values.
+| `partition(p)` | Splits list in two parts based on the value `p` returns.
+| `make_list(n, f)` | Creates list n long whose elements are determined by `f(0)`, `f(1)`, ...
+|===
