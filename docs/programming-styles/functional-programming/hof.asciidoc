@@ -317,12 +317,18 @@ It's a silly example, but you probably make similar mistakes without noticing, e
 
 === Initial Imperative Version
 
-We introduce a class `Evaluation` with fields `student`, `grade` and `course`.
+We introduce a class `Evaluation` with public fields `student`, `grade` and `course`.
 Their meanings should be clear.
 
-[source,ruby]
+[source,typescript]
 ----
-Evaluation = Struct.new :student, :grade, :course
+export class Evaluation
+{
+    constructor(
+        public student : string,
+        public grade : number,
+        public course : string) { }
+}
 ----
 
 Examine the source code below and try to find out what it does.
@@ -1280,16 +1286,101 @@ function top_students(evaluations : Evaluation[]) : { [key : string] : string[] 
 
 === `map_keys`
 
+We can simply our code further by introducing a variant of the `map` function.
+The `map` function takes a list and returns a list.
+Our new variant, `map_keys`, takes an *object* (i.e., key/value pairs), applies the given function to each *value* and constructs a new object which maps the original keys to the new values.
+
+[source,typescript]
+----
+function top_students(evaluations : Evaluation[]) : { [key : string] : string[] }
+{
+    const evaluations_by_course : { [key : string] : Evaluation[] } = {};
+    const passing_evaluations = filter(evaluations, e => e.grade >= 10);
+    const evaluations_by_course = group_by(passing_evaluations, e => e.course);
+
+    return map_keys( course_evaluation => {
+        const sorted_top_evaluations : Evaluation[] = [];
+
+        const i = find_index(sorted_top_evaluations,
+                             e => evaluation.grade >= e.grade) || course_evaluations.length;
+        sorted_top_evaluations.splice(i, 0, evaluation);
+
+        if ( sorted_top_evaluations.length > 3 )
+        {
+            sorted_top_evaluations.pop();
+        }
+
+        return map(sorted_top_evaluations, e => e.student);
+    } );
+}
+----
 
 === `max_by`
 
-TODO
+The highlighted code fragment looks for the three ``Evaluation``s with the highest grade.
+
+[source,typescript,,highlight='28-35']
+----
+function top_students(evaluations : Evaluation[]) : { [key : string] : string[] }
+{
+    const evaluations_by_course : { [key : string] : Evaluation[] } = {};
+    const passing_evaluations = filter(evaluations, e => e.grade >= 10);
+    const evaluations_by_course = group_by(passing_evaluations, e => e.course);
+
+    return map_keys( course_evaluations => {
+        const sorted_top_evaluations : Evaluation[] = [];
+
+        const i = find_index(sorted_top_evaluations,
+                             e => evaluation.grade >= e.grade) || course_evaluations.length;
+        sorted_top_evaluations.splice(i, 0, evaluation);
+
+        if ( sorted_top_evaluations.length > 3 )
+        {
+            sorted_top_evaluations.pop();
+        }
+
+        return map(sorted_top_evaluations, e => e.student);
+    } );
+}
+----
+
+This is again a reusable algorithm which we can move to a separate function, which we'll call `max_by`.
+
+
+[source,typescript,,highlight='28-35']
+----
+function top_students(evaluations : Evaluation[]) : { [key : string] : string[] }
+{
+    const evaluations_by_course : { [key : string] : Evaluation[] } = {};
+    const passing_evaluations = filter(evaluations, e => e.grade >= 10);
+    const evaluations_by_course = group_by(passing_evaluations, e => e.course);
+
+    return map_keys( course_evaluations => {
+        const sorted_top_evaluations = course_evaluations.max_by(e => e.grade);
+        return map(sorted_top_evaluations, e => e.student);
+    } );
+}
+----
 
 = Conclusion
 
-TODO
+Loops are actually very low level constructs.
+We can distinguish many different kinds of loops:
 
-* Algorithmic design patterns
-* Loops are low level
-* HOFs add more 'layers'
-* Reusable building blocks
+* Filtering: loops that remove items from a list.
+* Mapping: loops that apply a function to each element of a list.
+* Max: loops that look for "best" element according to some given condition.
+* ...
+
+Often, these operations are intertwined: for example, a single function can combine mapping and filtering.
+The consequences of this are
+
+* The code is less readable, as multiple things happen at once.
+* The code is not reusable.
+
+Recognizing that there exist "loop building blocks" and naming them (filter, map, find, max, ...) by putting them in separate functions gives us the following advantages:
+
+* The kind of operations we apply are explicitly mentioned in code, providing clear hints as what happens.
+* The code is much shorter as it contains only what is essential to its operation. No boilerplate code (e.g., iteration variables, temporary data structures) is necessary.
+* There's a lower chance of bugs since you get to reuse code.
+* Frequently used operations can be optimized.
