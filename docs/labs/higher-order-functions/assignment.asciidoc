@@ -31,6 +31,7 @@ Write the higher order functions with the functionality described below.
 | `xs.all(p)` | Checks if `p` returns `true` for all elements.
 | `xs.find_first(p)` | Finds the first element for which `p` returns `true`.
 | `xs.find_index(p)` | Finds the index of the first element for which `p` returns `true`.
+| `xs.count(p)` | Counts the number of elements for which `p` returns `true`.
 | `xs.filter(p)` | Returns all elements for which `p` returns `true`.
 | `xs.map(f)` | Applies `f` to each element and returns the results as a list.
 | `xs.take_while(p)` | Collects elements in a list until `p` returns `false`.
@@ -39,6 +40,7 @@ Write the higher order functions with the functionality described below.
 | `xs.min_by(n, f)` | Returns `n` element for which `f` returns lowest values.
 | `xs.max_by(f)` | Returns element for which `f` returns highest value.
 | `xs.max_by(n, f)` | Returns `n` elements for which `f` returns highest values.
-| `partition(p)` | Splits list in two parts based on the value `p` returns.
+| `xs.partition(p)` | Splits list in two parts based on the value `p` returns.
+| `xs.chunk_while(eq)` | Group series of equal elements together, where equality is determined by `eq(x, y)`.
 | `make_list(n, f)` | Creates list n long whose elements are determined by `f(0)`, `f(1)`, ...
 |===
