@@ -27,3 +27,9 @@ Good programming consists of being able to apply the right concept in the right 
 * Laziness
 * Persistent Data Structures
 * Link with concurrency
+
+{nbsp} +
+
+Important literature:
+
+image:https://i.imgur.com/uaVuYH5.png[]
