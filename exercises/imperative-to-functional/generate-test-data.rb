@@ -1,7 +1,7 @@
 require 'optparse'
 require 'json'
 
-Courses = [ 'bop', 'algo', 'oop', 'ooo', '.net', 'pvm', '3dcg', 'scripting', 'mobile', 'bpm', 'tdm', 'db', 'db2' ]
+Courses = [ 'bop', 'algo', 'oop', 'ooo', 'pvm', '3dcg', 'scripting', 'mobile', 'bpm', 'tdm', 'db', 'db2' ]
 
 
 $rng = Random.new
