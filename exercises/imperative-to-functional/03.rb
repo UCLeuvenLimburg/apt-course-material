@@ -7,7 +7,7 @@ rid, = ARGV
 timeslots = []
 result = []
 
-for exam in DATA
+for exam in DATA['exams']
     if exam['student_id'] == rid
         timeslot = exam['timeslot']
 

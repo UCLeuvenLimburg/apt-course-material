@@ -6,7 +6,7 @@ DATA = JSON.parse(STDIN.read)
 rid, = ARGV
 result = []
 
-for exam in DATA
+for exam in DATA['exams']
     result.push(exam['course']) if exam['student_id'] == rid
 end
 

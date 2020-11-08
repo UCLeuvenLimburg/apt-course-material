@@ -1,7 +1,7 @@
 require 'optparse'
 require 'json'
 
-Courses = [ 'bop', 'algo', 'oop', 'ooo', 'pvm', '3dcg', 'scripting', 'mobile', 'bpm', 'tdm', 'db', 'db2' ]
+Courses = [ 'bop', 'algo', 'oop', 'ooo', 'pvm', '3dcg', 'scripting', 'mobile', 'bpm', 'tdm', 'db', 'db2', 'web1', 'web2', 'web3', 'web4', 'it&r', 'da', 'cs', 'bs1', 'bs2' ]
 
 
 $rng = Random.new
@@ -39,9 +39,12 @@ def random_timeslot
     random_integer(0...$n_timeslots)
 end
 
-def random_location
-    i = random_integer(0...$n_locations)
+def make_location(i)
     "L#{i.to_s.rjust($n_locations.to_s.size, '0')}"
+end
+
+def random_location
+    make_location(random_integer(0...$n_locations))
 end
 
 
@@ -63,6 +66,13 @@ exams = (1..$n_students).flat_map do |id|
     end
 end
 
-json = JSON.dump exams
+room_capacities = (0...$n_locations).map do |i|
+    location = make_location i
+    capacity = random_integer(5..20)
+
+    [location, capacity]
+end.to_h
+
+json = JSON.dump({exams: exams, room_capacities: room_capacities})
 
 puts json
