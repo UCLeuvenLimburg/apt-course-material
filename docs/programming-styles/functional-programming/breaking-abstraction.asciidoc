@@ -30,7 +30,7 @@ You might wonder why strings have been made stateless in so many languages.
 Clearly creating new strings consumes way more memory.
 A stateful implementation would be much more memory efficient... right?
 
-Let's see what happens if we ``String``s were mutable by pretending we have a `void set(String newValue)` method that overwrites the `String` object with a new value.
+Let's see what happens if ``String``s were mutable by pretending we have a `void set(String newValue)` method that overwrites the `String` object with a new value.
 
 === First Version
 
