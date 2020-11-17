@@ -12,5 +12,9 @@ def primes():
             yield n
         n += 1
 
+def primes2():
+    return (k for k in itertools.count(2) if all(k % i != 0 for i in range(2, k)))
+
 
 print(list(itertools.islice(primes(), 0, 10)))
+print(list(itertools.islice(primes2(), 0, 10)))
