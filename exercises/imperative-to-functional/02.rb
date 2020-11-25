@@ -3,6 +3,7 @@ require 'json'
 DATA = JSON.parse(STDIN.read)
 
 
+# !! Takes one command line argument
 rid, = ARGV
 result = []
 
