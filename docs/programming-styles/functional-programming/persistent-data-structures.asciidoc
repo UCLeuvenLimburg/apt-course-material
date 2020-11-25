@@ -1,0 +1,17 @@
+// ROOT
+:tip-caption: 💡
+:note-caption: ℹ️
+:important-caption: ⚠️
+:task-caption: 👨‍🔧
+:source-highlighter: pygments
+:toc: left
+:toclevels: 3
+:experimental:
+:nofooter:
+:stem:
+
+= Persistent Data Structures
+
+* Explanation "persistent"
+* Linked lists
+* Tree

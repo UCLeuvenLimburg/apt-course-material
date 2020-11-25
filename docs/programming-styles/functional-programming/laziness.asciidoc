@@ -1,0 +1,23 @@
+// ROOT
+:tip-caption: 💡
+:note-caption: ℹ️
+:important-caption: ⚠️
+:task-caption: 👨‍🔧
+:source-highlighter: pygments
+:toc: left
+:toclevels: 3
+:experimental:
+:nofooter:
+:stem:
+:check: &#x2713;
+:nocheck: &#x2717;
+:cakepoint: 🎂
+
+= Laziness
+
+* Delay computation
+* Allows for infinite data structures
+* Example: AI GameTree
+* Haskell's lack of subtyping
+* Problem with functional programming: many temporary lists
+* Generators: laziness specifically for lists
