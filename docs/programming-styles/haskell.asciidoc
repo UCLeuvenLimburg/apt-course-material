@@ -1,0 +1,30 @@
+= Haskell
+
+* Language is about what it does not allow
+* Assembly = Anarchy
+* We want a language that only allows us to write correct programs
+* Two kinds of bugs
+** Inherent bugs (null pointer dereference, memory leak, division by zero, ...)
+** Code that does not perform the intended functionality
+* What Haskell has not
+** `null`
+*** Hoare's Billion Dollar Mistake
+*** Seldom do you want `null`
+*** `Maybe`
+** Subtyping
+*** Type inference
+*** Type classes
+*** Discriminated unions
+** State
+*** State/IO Monad
+*** Local state
+*** Explicit in type
+** Strictness
+** Decent debugger...
+*** Working in interactive shell
+*** Short functions
+* Data structures
+** Built in support for linked lists
+** Sharing
+** Infinite data
+* Expression Problem
