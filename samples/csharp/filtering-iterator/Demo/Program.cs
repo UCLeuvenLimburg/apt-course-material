@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace ConsoleApp2
+namespace Demo
 {
     interface Iterator<T>
     {
