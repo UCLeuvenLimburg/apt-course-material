@@ -14,6 +14,6 @@ const timeslotFrequencies = data.exams
                                 .map(exam => exam.timeslot)
                                 .tally();
 
-const result = Object.keys(timeslotFrequencies).filter(timeslot => timeslotFrequencies[timeslot] > 1);
+const result = Object.keys(timeslotFrequencies).filter(timeslot => timeslotFrequencies[timeslot] > 1).sort((x, y) => x - y);
 
 process.stdout.write(result.join('\n'));
